@@ -17,34 +17,29 @@ class MainWindow(QMainWindow):
         #self.setFixedSize(self.size())
 
         #################### Class Variable Initialization ####################
-        self.i = 0
+        self.defDeg = 90
+        self.i = self.defDeg
         self.x = []
         self.y = []
+        self.gyroOffset1 = 0
+        self.gyroOffset2 = 0
         # input parameters
         self.link1 = 0.12 # d center-to-center distance
         self.link2 = [0.09, 0.14, 0.19] # r
         self.link3 = [0.19,0.18, 0.12] # l
         self.link4 = [0.18, 0.19, 0.14] # rr
-        self.rot_num = 6  # number of crank rotations
-        self.increment = 0.1  # angle incremement
-        # create the angle array, where the last angle is the number of rotations*2*pi
-        self.angle_minus_last = np.arange(0, self.rot_num * 2 * pi, self.increment)
-        self.R_Angles = np.append(self.angle_minus_last, self.rot_num * 2 * pi)
-        # coordinates of the crank center point : Point 1
-        self.x1 = 0
-        self.y1 = 0
-        # Coordinates of the rocker center point: Point 4
-        self.x4 = self.link1
-        self.y4 = 0
-        self.X2 = np.zeros(len(self.R_Angles))  # array of crank x-positions: Point 2
-        self.Y2 = np.zeros(len(self.R_Angles))  # array of crank y-positions: Point 2
-        self.RR_Angle = np.zeros(len(self.R_Angles))  # array of rocker arm angles
-        self.X3 = np.zeros(len(self.R_Angles))  # array of rocker x-positions: Point 3
-        self.Y3 = np.zeros(len(self.R_Angles))  # array of rocker y-positions: Point 3
-
         self.jointsCalculator = FBarEquations(self.link1, self.link2, self.link3, self.link4)
+        # Variable for gyro forced resets
+        self.defaultDegParam = [[],[],[]]
+        self.jointsCalculator.mode = 1
+        self.defaultDegParam[1] = self.jointsCalculator.calculateLinks(90, 1)
+        self.jointsCalculator.mode = 2
+        self.defaultDegParam[2] = self.jointsCalculator.calculateLinks(90, 1)
         self.jointsCalculator.mode = 0
+        self.defaultDegParam[0] = self.jointsCalculator.calculateLinks(90, 1)
         #######################################################################
+        #print(self.defaultDegParam)
+
         
         #################### Window's Widgets Initialization ####################
         widget = QWidget()
@@ -107,7 +102,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         #######################################################################
 
-        self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
+        self.x,self.y = self.jointsCalculator.calculateLinks(self.i)
         self.update_plot()
 
         self.show()
@@ -149,9 +144,9 @@ class MainWindow(QMainWindow):
         self.accelerationBox2.aZ.setText(str(a2Z))
         # calculate joints
         # TODO: Calculate
-        self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
+        self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.defaultDegParam[self.jointsCalculator.mode][0], self.defaultDegParam[self.jointsCalculator.mode][1])
         self.data_line.setData(self.x, self.y)
-        self.i = self.i + 10
+        #self.i = self.i + 10
 
     def selectionChange(self, i):
         if i != 0:
@@ -159,12 +154,13 @@ class MainWindow(QMainWindow):
         else:
             self.graphWidget.setXRange(-0.1,0.3)
         self.jointsCalculator.mode = i
-        self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
+        self.resetEvent()
+        # self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
 
     def resetEvent(self):
         # reset gyro back to default position
-        self.i = 90
-        self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
+        self.x,self.y=self.jointsCalculator.calculateLinks(self.defDeg)
+        # current gyro-val = gyro-offset
 
 
 

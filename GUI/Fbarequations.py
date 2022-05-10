@@ -1,4 +1,4 @@
-from numpy import floor, pi, sin, cos, sqrt, radians, arccos, arctan, sign, absolute
+from numpy import floor, pi, sin, cos, sqrt, radians, arccos, degrees
 
 class FBarEquations:
     def __init__(self, link0, link1, link2, link3):
@@ -11,7 +11,7 @@ class FBarEquations:
         self.theta3 = 0
         self.theta4 = 0
 
-    def calculateLinks(self, input_deg): #กฎ 3 เหลี่ยม
+    def calculateLinks(self, input_deg, mode=0): #กฎ 3 เหลี่ยม mode 0 get coordinate / mode 1 get angles
         self.theta2 = radians(input_deg)
 
         div = floor(self.theta2 / (2*pi))
@@ -66,4 +66,32 @@ class FBarEquations:
         Cy = 0
         
         # TODO Traigle Px, Py
+        if mode == 0:
+            return [Ox, Ax, Bx, Cx], [Oy, Ay, By, Cy]
+        
+        return [degrees(self.theta2), degrees(self.theta4)]
+
+    def drawFromBothDegree(self, theta2, theta4):
+        theta2 = radians(theta2)
+        theta4 = radians(theta4)
+        L0 = self.link0
+        L1 = self.link1[self.mode]
+        # L2 = self.link2[self.mode]
+        L3 = self.link3[self.mode]
+
+        Ox = 0
+        Oy = 0
+
+        Ax = Ox + L1*cos(theta2)
+        Ay = Oy + L1*sin(theta2)
+
+        Cx = L0
+        Cy = 0
+
+        Bx  = Cx + L3*cos(theta4)
+        By  = Cy + L3*sin(theta4)
+
         return [Ox, Ax, Bx, Cx], [Oy, Ay, By, Cy]
+
+        
+
