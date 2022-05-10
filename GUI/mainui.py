@@ -17,7 +17,6 @@ class MainWindow(QMainWindow):
         #self.setFixedSize(self.size())
 
         #################### Class Variable Initialization ####################
-        self.mode = 0
         self.i = 0
         self.x = []
         self.y = []
@@ -26,8 +25,6 @@ class MainWindow(QMainWindow):
         self.link2 = [0.09, 0.14, 0.19] # r
         self.link3 = [0.19,0.18, 0.12] # l
         self.link4 = [0.18, 0.19, 0.14] # rr
-        self.jointsCalculator = FBarEquations(self.link1, self.link2, self.link3, self.link4)
-        self.jointsCalculator.mode = self.mode
         self.rot_num = 6  # number of crank rotations
         self.increment = 0.1  # angle incremement
         # create the angle array, where the last angle is the number of rotations*2*pi
@@ -44,6 +41,9 @@ class MainWindow(QMainWindow):
         self.RR_Angle = np.zeros(len(self.R_Angles))  # array of rocker arm angles
         self.X3 = np.zeros(len(self.R_Angles))  # array of rocker x-positions: Point 3
         self.Y3 = np.zeros(len(self.R_Angles))  # array of rocker y-positions: Point 3
+
+        self.jointsCalculator = FBarEquations(self.link1, self.link2, self.link3, self.link4)
+        self.jointsCalculator.mode = 0
         #######################################################################
         
         #################### Window's Widgets Initialization ####################
@@ -107,7 +107,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         #######################################################################
 
-        self.calculateJoint()
+        self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
         self.update_plot()
 
         self.show()
@@ -149,34 +149,24 @@ class MainWindow(QMainWindow):
         self.accelerationBox2.aZ.setText(str(a2Z))
         # calculate joints
         # TODO: Calculate
-
-        if self.i >= len(self.X2): self.i = 0
-        self.x = [self.x1, self.X2[self.i], self.X3[self.i], self.x4]
-        self.y = [self.y1, self.Y2[self.i], self.Y3[self.i], self.y4]
+        self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
         self.data_line.setData(self.x, self.y)
-        self.i = self.i + 1
+        self.i = self.i + 10
 
     def selectionChange(self, i):
         if i != 0:
             self.graphWidget.setXRange(-0.2,0.3)
         else:
             self.graphWidget.setXRange(-0.1,0.3)
-        self.mode = i
         self.jointsCalculator.mode = i
-        self.calculateJoint()
+        self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
 
     def resetEvent(self):
         # reset gyro back to default position
-        print("shit")
+        self.i = 90
+        self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
 
-    def calculateJoint(self):
-        # find the crank and connecting rod positions for each angle
-        for index, R_Angle in enumerate(self.R_Angles, start=0):
-            x,y=self.jointsCalculator.calculateLinks(degrees(R_Angle))
-            self.X2[index] = x[1]  # grab the crankshaft x-position
-            self.Y2[index] = y[1]  # grab the crankshaft y-position
-            self.X3[index] = x[2]  # grab the connecting rod x-position
-            self.Y3[index] = y[2]  # grab the connecting rod y-position
+
 
 class Velocity(QWidget):
     def __init__(self):

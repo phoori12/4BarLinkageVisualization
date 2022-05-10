@@ -23,9 +23,27 @@ class FBarEquations:
         L3 = self.link3[self.mode]
 
         AC = sqrt(L0*L0 + L1*L1 - 2*L0*L1*cos(self.theta2))
-        beta = arccos((L0*L0 + AC*AC - L1*L1)/(2*L0*AC)) # rad
-        psi = arccos((L2*L2 + AC*AC - L3*L3)/(2*L2*AC))
-        lamb = arccos((L3*L3 + AC*AC - L2*L2)/(2*L3*AC))
+        betaAcosAttrib = (L0*L0 + AC*AC - L1*L1)/(2*L0*AC)
+        psiAcosAttrib = (L2*L2 + AC*AC - L3*L3)/(2*L2*AC)
+        lambAcosAttrib = (L3*L3 + AC*AC - L2*L2)/(2*L3*AC)
+        if betaAcosAttrib > 1:
+            betaAcosAttrib = 1
+        elif betaAcosAttrib < -1:
+            betaAcosAttrib = -1
+
+        if psiAcosAttrib > 1:
+            psiAcosAttrib = 1
+        elif psiAcosAttrib < -1:
+            psiAcosAttrib = -1
+        
+        if lambAcosAttrib > 1:
+            lambAcosAttrib = 1
+        elif lambAcosAttrib < -1:
+            lambAcosAttrib = -1
+
+        beta = arccos(betaAcosAttrib) 
+        psi = arccos(psiAcosAttrib)
+        lamb = arccos(lambAcosAttrib)
 
         self.theta3 = psi - beta
         self.theta4 = pi - lamb - beta
