@@ -1,11 +1,12 @@
 import sys
 import numpy as np
-from numpy import pi, sin, cos, sqrt, absolute, arccos, arctan, sign
+from numpy import degrees, pi, sin, cos, sqrt, absolute, arccos, arctan, sign
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
+from Fbarequations import FBarEquations
 
 
 class MainWindow(QMainWindow):
@@ -25,10 +26,10 @@ class MainWindow(QMainWindow):
         self.link2 = [0.09, 0.14, 0.19] # r
         self.link3 = [0.19,0.18, 0.12] # l
         self.link4 = [0.18, 0.19, 0.14] # rr
+        self.jointsCalculator = FBarEquations(self.link1, self.link2, self.link3, self.link4)
+        self.jointsCalculator.mode = self.mode
         self.rot_num = 6  # number of crank rotations
         self.increment = 0.1  # angle incremement
-        self.over = 1  # if over = 1 --> mechanism is on top, If over = -1, mechanism on bottom
-        self.s = self.over / absolute(self.over)
         # create the angle array, where the last angle is the number of rotations*2*pi
         self.angle_minus_last = np.arange(0, self.rot_num * 2 * pi, self.increment)
         self.R_Angles = np.append(self.angle_minus_last, self.rot_num * 2 * pi)
@@ -161,6 +162,7 @@ class MainWindow(QMainWindow):
         else:
             self.graphWidget.setXRange(-0.1,0.3)
         self.mode = i
+        self.jointsCalculator.mode = i
         self.calculateJoint()
 
     def resetEvent(self):
@@ -170,29 +172,11 @@ class MainWindow(QMainWindow):
     def calculateJoint(self):
         # find the crank and connecting rod positions for each angle
         for index, R_Angle in enumerate(self.R_Angles, start=0):
-            #theta1 = np.radians(90)
-            theta1 = R_Angle # gyro
-            x2 = self.link2[self.mode] * cos(theta1)  # x-cooridnate of the crank: Point 2
-            y2 = self.link2[self.mode] * sin(theta1)  # y-cooridnate of the crank: Point 2
-            e = sqrt((x2 - self.link1) ** 2 + (y2 ** 2))
-            phi2 = arccos((e ** 2 + self.link4[self.mode] ** 2 - self.link3[self.mode] ** 2) / (2 * e * self.link4[self.mode]))
-            phi1 = arctan(y2 / (x2 - self.link1)) + (1 - sign(x2 - self.link1)) * pi / 2
-            theta3 = phi1 - self.s * phi2 #gyro
-            #theta3 = np.radians(90)
-            self.RR_Angle[index] = theta3
-            # if np.degrees(RR_Angle[index]) != None:
-            #     print(print(np.degrees(RR_Angle[index])))
-            x3 = self.link4[self.mode] * cos(theta3) + self.link1
-            # x cooridnate of the rocker moving point: Point 3
-            y3 = self.link4[self.mode] * sin(theta3)
-            # y cooridnate of the rocker moving point: Point 3
-
-            theta2 = arctan((y3 - y2) / (x3 - x2)) + (1 - sign(x3 - x2)) * pi / 2
-
-            self.X2[index] = x2  # grab the crankshaft x-position
-            self.Y2[index] = y2  # grab the crankshaft y-position
-            self.X3[index] = x3  # grab the connecting rod x-position
-            self.Y3[index] = y3  # grab the connecting rod y-position
+            x,y=self.jointsCalculator.calculateLinks(degrees(R_Angle))
+            self.X2[index] = x[1]  # grab the crankshaft x-position
+            self.Y2[index] = y[1]  # grab the crankshaft y-position
+            self.X3[index] = x[2]  # grab the connecting rod x-position
+            self.Y3[index] = y[2]  # grab the connecting rod y-position
 
 class Velocity(QWidget):
     def __init__(self):
