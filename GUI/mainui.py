@@ -18,6 +18,7 @@ class MainWindow(QMainWindow):
         #self.setFixedSize(self.size())
 
         #################### Class Variable Initialization ####################
+        self.isConnected = False
         self.flag = 0
         self.defDeg = 90
         self.i = self.defDeg
@@ -150,23 +151,41 @@ class MainWindow(QMainWindow):
         self.timer.start()
 
     def update_plot(self):
+        v1X = 0.0
+        v1Y = 0.0
+        v1Z = 0.0
+        a1X = 0.0
+        a1Y = 0.0
+        a1Z = 0.0
+
+        v2X = 0.0
+        v2Y = 0.0
+        v2Z = 0.0
+        a2X = 0.0
+        a2Y = 0.0
+        a2Z = 0.0
+        if self.isConnected:
+            _buffer = self.serialComm.getBuffer(2)
+            if _buffer != 0:
+                buffer = self.serialComm.castBuffer(_buffer)
+                v1X = buffer[3]
+                v1Y = buffer[4]
+                v1Z = buffer[5]
+                a1X = buffer[0]
+                a1Y = buffer[1]
+                a1Z = buffer[2]
+
+                v2X = buffer[9]
+                v2Y = buffer[10]
+                v2Z = buffer[11]
+                a2X = buffer[6]
+                a2Y = buffer[7]
+                a2Z = buffer[8]
         # fetch from arduino v and a 
         self.deg1 = 0 + self.defaultDegParam[self.jointsCalculator.mode][0] - self.gyroOffset1
         self.deg2 = 0 + self.defaultDegParam[self.jointsCalculator.mode][1] - self.gyroOffset2
         #print(self.jointsCalculator.mode)
-        v1X = 1.0
-        v1Y = 2.0
-        v1Z = 3.0
-        a1X = 4.0
-        a1Y = 5.0
-        a1Z = 6.0
-
-        v2X = 7.0
-        v2Y = 8.0
-        v2Z = 9.0
-        a2X = 1.1
-        a2Y = 1.2
-        a2Z = 1.3
+        
 
         self.velocityBox1.vX.setText(str(v1X))
         self.velocityBox1.vY.setText(str(v1Y))
@@ -213,7 +232,7 @@ class MainWindow(QMainWindow):
         for s in serialPorts:
             self.serialPortsList.addItem(s)
         self.serialPortsList.currentIndexChanged.connect(self.serialSelectionChange)
-        print("refreshed")
+        self.serialComm.ser.port = self.serialPortsList.itemText(0)
 
     def serialConnectEvent(self):
         msg = QMessageBox()
@@ -226,6 +245,7 @@ class MainWindow(QMainWindow):
             elif self.flag == 1: # Connected
                 msg.setIcon(QMessageBox.Information)
                 msg.setText("Connected!")
+                self.isConnected = True
         elif self.flag == 1:
             msg.setIcon(QMessageBox.Question)
             msg.setText("Already Connected to " + self.serialComm.ser.port)
@@ -243,6 +263,7 @@ class MainWindow(QMainWindow):
             elif self.flag == 1: # Disconnected
                 msg.setIcon(QMessageBox.Information)
                 msg.setText("Disconnected!")
+                self.isConnected = False
                 self.flag = 0
         elif self.flag == 0:
             msg.setIcon(QMessageBox.Question)
@@ -258,13 +279,6 @@ class MainWindow(QMainWindow):
             msg.setIcon(QMessageBox.Critical)
             msg.setText("Please choose Port after successful disconnection")
             msg.exec_()
-        
-        
-        
-
-        
-
-        
 
 
 class Velocity(QWidget):

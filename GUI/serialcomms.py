@@ -1,5 +1,8 @@
+import string
 import serial.tools.list_ports
 import serial
+import struct
+import time
 
 class SerialComms:
     def __init__(self, baudrate=9600):
@@ -7,6 +10,9 @@ class SerialComms:
         self.ser = serial.Serial()
         self.ser.port = ''
         self.ser.baudrate = baudrate
+        self.buffer = [None]*52
+        self.cmdIndex = 0
+        self.cmdLength = 52 * 2
         
     def listPorts(self):
         self.ports = []
@@ -35,10 +41,45 @@ class SerialComms:
         else:
             return 0
             
+    def getBuffer(self, timeout):
+        loop_start_time = time.time()
+        while self.ser.is_open:
+            
+            recv_ = self.ser.read()
+            
+            
+            self.buffer[self.cmdIndex] = recv_
+            
 
+            if (self.cmdIndex == 0) and self.buffer[0] != b'#':
+                continue
 
-    def getBuffer(self):
-        if not self.ser.is_open:
-            return 0
+            
+            if (self.buffer[self.cmdIndex - 51] == b'#') and (self.buffer[self.cmdIndex - 50] == b's') and (self.buffer[self.cmdIndex - 1] == b'\r') and (self.buffer[self.cmdIndex] == b'\n'):
+                self.cmdIndex = 0
+                return_buffer = self.buffer
+                self.buffer = [None]*52
+                return return_buffer
+            else:
+                if self.cmdIndex < self.cmdLength:
+                    self.cmdIndex += 1
+                else:
+                    self.cmdIndex = 0
 
-        # read buffer and return each value to main ui
+            if time.time() - loop_start_time > timeout:
+                self.buffer = [None]*52
+                return 0
+    
+    def castBuffer(self, buffer):
+        data = []
+        buffer.pop(0)
+        buffer.pop(0)
+        buffer.pop(-1)
+        buffer.pop(-1)
+
+        for i in range(len(buffer)):
+            if (i+1) % 4 == 0:
+                temp = buffer[i] + buffer[i-1] + buffer[i-2] + buffer[i-3]
+                temp = struct.unpack('f', temp)
+                data.append(round(temp[0],3))
+        return data
