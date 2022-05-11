@@ -1,14 +1,5 @@
-# crank_and_rocker_motion.py
+from serialcomms import SerialComms
 
-# import necessary packages
-import numpy as np
-from numpy import pi, radians, sin, cos, sqrt, absolute, arccos, arctan, sign
-import matplotlib.pyplot as plt
-from Fbarequations import FBarEquations
+x = SerialComms()
 
-test = FBarEquations()
-
-x,y = test.calculateLinks(450)
-plt.plot(x,y)
-plt.show()
-
+x.disconnect()

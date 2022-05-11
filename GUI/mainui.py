@@ -1,4 +1,5 @@
 import sys
+from time import sleep
 import numpy as np
 from numpy import degrees, pi, sin, cos, sqrt, absolute, arccos, arctan, sign
 from PyQt5.QtGui import *
@@ -7,7 +8,7 @@ from PyQt5.QtCore import *
 from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
 from Fbarequations import FBarEquations
-
+from serialcomms import SerialComms
 
 class MainWindow(QMainWindow):
 
@@ -17,10 +18,15 @@ class MainWindow(QMainWindow):
         #self.setFixedSize(self.size())
 
         #################### Class Variable Initialization ####################
+        self.flag = 0
         self.defDeg = 90
         self.i = self.defDeg
         self.x = []
         self.y = []
+        self.deg1 = 0
+        self.deg2 = 0
+        self.gyro1 = 0
+        self.gyro2 = 0
         self.gyroOffset1 = 0
         self.gyroOffset2 = 0
         # input parameters
@@ -29,6 +35,7 @@ class MainWindow(QMainWindow):
         self.link3 = [0.19,0.18, 0.12] # l
         self.link4 = [0.18, 0.19, 0.14] # rr
         self.jointsCalculator = FBarEquations(self.link1, self.link2, self.link3, self.link4)
+        self.serialComm = SerialComms()
         # Variable for gyro forced resets
         self.defaultDegParam = [[],[],[]]
         self.jointsCalculator.mode = 1
@@ -38,13 +45,43 @@ class MainWindow(QMainWindow):
         self.jointsCalculator.mode = 0
         self.defaultDegParam[0] = self.jointsCalculator.calculateLinks(90, 1)
         #######################################################################
-        #print(self.defaultDegParam)
+        print(self.defaultDegParam)
 
         
         #################### Window's Widgets Initialization ####################
         widget = QWidget()
         self.graphWidget = pg.PlotWidget()
         self.dropdownBox = QComboBox()
+        
+        self.serialBox = QHBoxLayout()
+        self.serialPortsList = QComboBox()
+        self.serialConnect = QPushButton()
+        self.serialDisconnect = QPushButton()
+        self.serialRefresh = QPushButton()
+        
+        self.serialConnect.setText("Connect")
+        self.serialConnect.move(64,32)
+        self.serialConnect.clicked.connect(self.serialConnectEvent)
+        self.serialDisconnect.setText("Disconnect")
+        self.serialDisconnect.move(64,32)
+        self.serialDisconnect.clicked.connect(self.serialDisconnectEvent)
+        self.serialRefresh.setText("Refresh")
+        self.serialRefresh.move(64,32)
+        self.serialRefresh.clicked.connect(self.serialRefreshEvent)
+
+        serialPorts = self.serialComm.listPorts()
+        for s in serialPorts:
+            self.serialPortsList.addItem(s)
+        self.serialPortsList.currentIndexChanged.connect(self.serialSelectionChange)
+        self.serialComm.ser.port = self.serialPortsList.itemText(0)
+        
+        self.serialBox.addWidget(self.serialPortsList)
+        self.serialBox.addWidget(self.serialRefresh)
+        self.serialBox.addWidget(self.serialConnect)
+        self.serialBox.addWidget(self.serialDisconnect)
+
+
+
         self.graphTitle = QLabel()
         self.visualizeBox = QHBoxLayout()
         self.graphBox = QVBoxLayout()
@@ -87,6 +124,7 @@ class MainWindow(QMainWindow):
         self.visualizeBox.addWidget(self.dropdownBox)
         self.visualizeBox.addLayout(self.graphBox)
         self.page_layout.addLayout(self.visualizeBox)
+        self.page_layout.addLayout(self.serialBox)
         self.page_layout.addWidget(self.sensorReadH)
         self.page_layout.addLayout(self.infolayout)
         self.infolayout.setContentsMargins(10,10,10,10)
@@ -107,12 +145,15 @@ class MainWindow(QMainWindow):
 
         self.show()
         self.timer = QTimer()
-        self.timer.setInterval(50)
+        self.timer.setInterval(100)
         self.timer.timeout.connect(self.update_plot)
         self.timer.start()
 
     def update_plot(self):
         # fetch from arduino v and a 
+        self.deg1 = 0 + self.defaultDegParam[self.jointsCalculator.mode][0] - self.gyroOffset1
+        self.deg2 = 0 + self.defaultDegParam[self.jointsCalculator.mode][1] - self.gyroOffset2
+        #print(self.jointsCalculator.mode)
         v1X = 1.0
         v1Y = 2.0
         v1Z = 3.0
@@ -144,7 +185,8 @@ class MainWindow(QMainWindow):
         self.accelerationBox2.aZ.setText(str(a2Z))
         # calculate joints
         # TODO: Calculate
-        self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.defaultDegParam[self.jointsCalculator.mode][0], self.defaultDegParam[self.jointsCalculator.mode][1])
+        #self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
+        self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)
         self.data_line.setData(self.x, self.y)
         #self.i = self.i + 10
 
@@ -159,9 +201,70 @@ class MainWindow(QMainWindow):
 
     def resetEvent(self):
         # reset gyro back to default position
-        self.x,self.y=self.jointsCalculator.calculateLinks(self.defDeg)
-        # current gyro-val = gyro-offset
+        # gyro-offset = gyro-val
+        self.gyroOffset1 = 0 # real gyro value
+        self.gyroOffset2 = 0  # real gyro value
+        self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.defaultDegParam[self.jointsCalculator.mode][0], self.defaultDegParam[self.jointsCalculator.mode][1])
+        self.data_line.setData(self.x, self.y)
 
+    def serialRefreshEvent(self):
+        self.serialPortsList.clear()
+        serialPorts = self.serialComm.listPorts()
+        for s in serialPorts:
+            self.serialPortsList.addItem(s)
+        self.serialPortsList.currentIndexChanged.connect(self.serialSelectionChange)
+        print("refreshed")
+
+    def serialConnectEvent(self):
+        msg = QMessageBox()
+        msg.setStandardButtons(QMessageBox.Ok)
+        if self.flag == 0:
+            self.flag = self.serialComm.connect()
+            if self.flag == 0: # Cannot connect
+                msg.setIcon(QMessageBox.Critical)
+                msg.setText("Connection fail")
+            elif self.flag == 1: # Connected
+                msg.setIcon(QMessageBox.Information)
+                msg.setText("Connected!")
+        elif self.flag == 1:
+            msg.setIcon(QMessageBox.Question)
+            msg.setText("Already Connected to " + self.serialComm.ser.port)
+        msg.exec_()
+
+    def serialDisconnectEvent(self):
+        msg = QMessageBox()
+        msg.setStandardButtons(QMessageBox.Ok)
+        if self.flag == 1: # Device is connected
+            self.flag = self.serialComm.disconnect()
+            if self.flag == 2: # Cannot Disconect
+                msg.setIcon(QMessageBox.Critical)
+                msg.setText("Disconnection fail")
+                self.flag = 1
+            elif self.flag == 1: # Disconnected
+                msg.setIcon(QMessageBox.Information)
+                msg.setText("Disconnected!")
+                self.flag = 0
+        elif self.flag == 0:
+            msg.setIcon(QMessageBox.Question)
+            msg.setText("No device connected")
+        msg.exec_()
+
+    def serialSelectionChange(self, i):
+        if self.flag == 0:
+            self.serialComm.ser.port = self.serialPortsList.itemText(i)
+        else:
+            msg = QMessageBox()
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Please choose Port after successful disconnection")
+            msg.exec_()
+        
+        
+        
+
+        
+
+        
 
 
 class Velocity(QWidget):
