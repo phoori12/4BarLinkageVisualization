@@ -47,10 +47,8 @@ class SerialComms:
             
             recv_ = self.ser.read()
             
-            
             self.buffer[self.cmdIndex] = recv_
             
-
             if (self.cmdIndex == 0) and self.buffer[0] != b'#':
                 continue
 
