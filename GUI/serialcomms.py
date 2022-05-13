@@ -25,7 +25,7 @@ class SerialComms:
     def connect(self):
         try:
             self.ser.open()
-            self.ser.write("<")
+            # self.ser.write("<")
             return 1
         except:
             print("invalid port")
@@ -34,8 +34,8 @@ class SerialComms:
     def disconnect(self):
         if self.ser.is_open:
             try:
+                #self.ser.write(">")
                 self.ser.close()
-                self.ser.write(">")
                 return 1
             except:
                 print("what?")
