@@ -5,7 +5,7 @@ import struct
 import time
 
 class SerialComms:
-    def __init__(self, baudrate=9600):
+    def __init__(self, baudrate=115200):
         self.ports = []
         self.ser = serial.Serial()
         self.ser.port = ''
