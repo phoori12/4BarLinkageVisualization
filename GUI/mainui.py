@@ -187,7 +187,7 @@ class MainWindow(QMainWindow):
         # calculate velocity
         self.time_current = round(time.time() * 1000)
         for i in range(3):
-            self.dv1[i] = self.aXYZ_1[i] * (self.time_current - self.prev_time)
+            self.dv1[i] = self.aXYZ_1[i] * (self.time_current - self.prev_time) 
             self.v1[i] = self.v1[i] + self.dv1[i]
             self.dv2[i] = self.aXYZ_2[i] * (self.time_current - self.prev_time)
             self.v2[i] = self.v2[i] + self.dv2[i]
@@ -238,6 +238,8 @@ class MainWindow(QMainWindow):
             self.v1[i] = 0
             self.dv2[i] = 0
             self.v2[i] = 0
+
+        # TODO: add offset for acceleration
         self.gyroOffset1 = 0 # real gyro value
         self.gyroOffset2 = 0  # real gyro value
         self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.defaultDegParam[self.jointsCalculator.mode][0], self.defaultDegParam[self.jointsCalculator.mode][1])
