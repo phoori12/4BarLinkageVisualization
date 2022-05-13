@@ -217,8 +217,8 @@ class MainWindow(QMainWindow):
         self.accelerationBox2.aY.setText(str(self.aXYZ_2[1]))
         self.accelerationBox2.aZ.setText(str(self.aXYZ_2[2]))
         # calculate joints
-        #self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
-        self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)
+        self.x,self.y=self.jointsCalculator.calculateLinks(self.deg1)
+        # self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)
         self.data_line.setData(self.x, self.y)
         #self.i = self.i + 10
 
