@@ -80,5 +80,5 @@ class SerialComms:
             if (i+1) % 4 == 0:
                 temp = buffer[i] + buffer[i-1] + buffer[i-2] + buffer[i-3]
                 temp = struct.unpack('f', temp)
-                data.append(round(temp[0],3))
+                data.append(round(temp[0],2))
         return data
