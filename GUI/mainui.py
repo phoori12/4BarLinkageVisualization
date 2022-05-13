@@ -196,8 +196,8 @@ class MainWindow(QMainWindow):
 
 
         # fetch from arduino v and a 
-        self.deg1 = 0 + self.defaultDegParam[self.jointsCalculator.mode][0] - self.gyroOffset1
-        self.deg2 = 0 + self.defaultDegParam[self.jointsCalculator.mode][1] - self.gyroOffset2
+        self.deg1 = self.gYPR_1[1] + self.defaultDegParam[self.jointsCalculator.mode][0] - self.gyroOffset1
+        self.deg2 = self.gYPR_2[1] + self.defaultDegParam[self.jointsCalculator.mode][1] - self.gyroOffset2
         #print(self.jointsCalculator.mode)
         
 
@@ -243,8 +243,8 @@ class MainWindow(QMainWindow):
             self.aXYZ_offset_2[i] = self.aXYZ_2[i]
 
         # TODO: add offset for acceleration
-        self.gyroOffset1 = 0 # real gyro value
-        self.gyroOffset2 = 0  # real gyro value
+        self.gyroOffset1 = self.gYPR_1[1] # real gyro value
+        self.gyroOffset2 = self.gYPR_2[1]  # real gyro value
         self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.defaultDegParam[self.jointsCalculator.mode][0], self.defaultDegParam[self.jointsCalculator.mode][1])
         self.data_line.setData(self.x, self.y)
 
