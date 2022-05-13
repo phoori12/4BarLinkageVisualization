@@ -55,7 +55,7 @@ class SerialComms:
             if (self.cmdIndex == 0) and self.buffer[0] != b'#':
                 continue
 
-            
+            print('got #')
             if (self.buffer[self.cmdIndex - 51] == b'#') and (self.buffer[self.cmdIndex - 50] == b's') and (self.buffer[self.cmdIndex - 1] == b'\r') and (self.buffer[self.cmdIndex] == b'\n'):
                 self.cmdIndex = 0
                 return_buffer = self.buffer
