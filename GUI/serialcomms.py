@@ -25,6 +25,7 @@ class SerialComms:
     def connect(self):
         try:
             self.ser.open()
+            self.ser.write("<")
             return 1
         except:
             print("invalid port")
@@ -34,6 +35,7 @@ class SerialComms:
         if self.ser.is_open:
             try:
                 self.ser.close()
+                self.ser.write(">")
                 return 1
             except:
                 print("what?")
@@ -55,7 +57,7 @@ class SerialComms:
             if (self.cmdIndex == 0) and self.buffer[0] != b'#':
                 continue
 
-            print('got #')
+            #print('got #')
             if (self.buffer[self.cmdIndex - 51] == b'#') and (self.buffer[self.cmdIndex - 50] == b's') and (self.buffer[self.cmdIndex - 1] == b'\r') and (self.buffer[self.cmdIndex] == b'\n'):
                 self.cmdIndex = 0
                 return_buffer = self.buffer
