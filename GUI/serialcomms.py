@@ -49,8 +49,8 @@ class SerialComms:
             
             try:
                 self.buffer[self.cmdIndex] = recv_
-            except:
-                print("error")
+            finally:
+                self.disconnect()
             
             if (self.cmdIndex == 0) and self.buffer[0] != b'#':
                 continue
