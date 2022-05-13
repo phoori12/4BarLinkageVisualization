@@ -200,17 +200,17 @@ class MainWindow(QMainWindow):
         #print(self.jointsCalculator.mode)
         
 
-        self.velocityBox1.vX.setText(str(self.gYPR_1[0]))
-        self.velocityBox1.vY.setText(str(self.gYPR_1[1]))
-        self.velocityBox1.vZ.setText(str(self.gYPR_1[2]))
+        self.velocityBox1.vX.setText(str(self.v1[0]))
+        self.velocityBox1.vY.setText(str(self.v1[1]))
+        self.velocityBox1.vZ.setText(str(self.v1[2]))
 
         self.accelerationBox1.aX.setText(str(self.aXYZ_1[0]))
         self.accelerationBox1.aY.setText(str(self.aXYZ_1[1]))
         self.accelerationBox1.aZ.setText(str(self.aXYZ_1[2]))
 
-        self.velocityBox2.vX.setText(str(self.gYPR_2[0]))
-        self.velocityBox2.vY.setText(str(self.gYPR_2[1]))
-        self.velocityBox2.vZ.setText(str(self.gYPR_2[2]))
+        self.velocityBox2.vX.setText(str(self.v2[0]))
+        self.velocityBox2.vY.setText(str(self.v2[1]))
+        self.velocityBox2.vZ.setText(str(self.v2[2]))
 
         self.accelerationBox2.aX.setText(str(self.aXYZ_2[0]))
         self.accelerationBox2.aY.setText(str(self.aXYZ_2[1]))
