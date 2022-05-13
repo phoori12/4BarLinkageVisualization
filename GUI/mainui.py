@@ -186,7 +186,7 @@ class MainWindow(QMainWindow):
                 self.aXYZ_2[2] = buffer[8]
                 
         # calculate velocity
-        self.time_current = round(time.time() * 1000)
+        self.time_current = round(time.time())
         for i in range(3):
             self.dv1[i] = (self.aXYZ_1[i]-self.aXYZ_offset_1[i]) * (self.time_current - self.prev_time) 
             self.v1[i] = self.v1[i] + self.dv1[i]
