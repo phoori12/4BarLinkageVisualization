@@ -71,7 +71,7 @@ class SerialComms:
                 else:
                     self.buffer = [None]*52
                     self.cmdIndex = 0
-                    self.ser.reset_input_buffer()
+                    # self.ser.reset_input_buffer()
                     print('flushed buffer')
 
             if time.time() - loop_start_time > timeout:
