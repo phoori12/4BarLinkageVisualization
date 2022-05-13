@@ -76,6 +76,7 @@ class SerialComms:
             if time.time() - loop_start_time > timeout:
                 self.buffer = [None]*52
                 self.cmdIndex = 0
+                print('timed out')
                 return 0
         return 0
     
