@@ -62,13 +62,16 @@ class SerialComms:
                 self.cmdIndex = 0
                 return_buffer = self.buffer
                 self.buffer = [None]*52
+                print('buffer filled')
                 return return_buffer
             else:
                 if self.cmdIndex < self.cmdLength -1:
                     self.cmdIndex += 1
+                    print(f'cmdIndex, {0}', self.cmdIndex)
                 else:
                     self.buffer = [None]*52
                     self.cmdIndex = 0
+                    print('flushed buffer')
 
             if time.time() - loop_start_time > timeout:
                 self.buffer = [None]*52
