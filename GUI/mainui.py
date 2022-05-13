@@ -189,9 +189,9 @@ class MainWindow(QMainWindow):
         self.time_current = round(time.time())
         for i in range(3):
             self.dv1[i] = (self.aXYZ_1[i]-self.aXYZ_offset_1[i]) * (self.time_current - self.prev_time) 
-            self.v1[i] = self.v1[i] + self.dv1[i]
+            self.v1[i] = round((self.v1[i] + self.dv1[i]),2)
             self.dv2[i] = (self.aXYZ_2[i]-self.aXYZ_offset_2[i]) * (self.time_current - self.prev_time)
-            self.v2[i] = self.v2[i] + self.dv2[i]
+            self.v2[i] = round((self.v2[i] + self.dv2[i]),2)
         self.prev_time = self.time_current
 
 
