@@ -12,7 +12,7 @@ class SerialComms:
         self.ser.baudrate = baudrate
         self.buffer = [None]*52
         self.cmdIndex = 0
-        self.cmdLength = 52 * 2
+        self.cmdLength = 52
         
     def listPorts(self):
         self.ports = []
