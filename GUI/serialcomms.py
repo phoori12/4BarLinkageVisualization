@@ -10,7 +10,7 @@ class SerialComms:
         self.ser = serial.Serial()
         self.ser.port = ''
         self.ser.baudrate = baudrate
-        self.buffer = [None]*52
+        self.buffer = [None]*104
         self.cmdIndex = 0
         self.cmdLength = 52
         
@@ -58,18 +58,20 @@ class SerialComms:
             print('got #')
             if (self.buffer[self.cmdIndex - 51] == b'#') and (self.buffer[self.cmdIndex - 50] == b's') and (self.buffer[self.cmdIndex - 1] == b'\r') and (self.buffer[self.cmdIndex] == b'\n'):
                 self.cmdIndex = 0
-                return_buffer = self.buffer
-                self.buffer = [None]*52
+                return_buffer = self.buffer[self.cmdIndex-51:self.cmdIndex]
+                return_buffer.append(self.buffer[self.cmdIndex])
+                print(return_buffer)
+                self.buffer = [None]*104
                 return return_buffer
             else:
-                if self.cmdIndex < self.cmdLength - 1:
+                if self.cmdIndex < self.cmdLength*2 - 1:
                     self.cmdIndex += 1
                 else:
-                    self.buffer = [None]*52
+                    self.buffer = [None]*104
                     self.cmdIndex = 0
 
             if time.time() - loop_start_time > timeout:
-                self.buffer = [None]*52
+                self.buffer = [None]*104
                 self.cmdIndex = 0
                 return 0
         return 0
