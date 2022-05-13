@@ -43,7 +43,7 @@ class SerialComms:
             
     def getBuffer(self, timeout):
         loop_start_time = time.time()
-        while self.ser.is_open:
+        while self.ser.is_open and self.ser.in_waiting:
             
             recv_ = self.ser.read()
             
@@ -67,6 +67,7 @@ class SerialComms:
             if time.time() - loop_start_time > timeout:
                 self.buffer = [None]*52
                 return 0
+        return 0
     
     def castBuffer(self, buffer):
         data = []

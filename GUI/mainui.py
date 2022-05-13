@@ -1,5 +1,5 @@
 import sys
-from time import sleep
+import time
 import numpy as np
 from numpy import degrees, pi, sin, cos, sqrt, absolute, arccos, arctan, sign
 from PyQt5.QtGui import *
@@ -45,6 +45,18 @@ class MainWindow(QMainWindow):
         self.defaultDegParam[2] = self.jointsCalculator.calculateLinks(90, 1)
         self.jointsCalculator.mode = 0
         self.defaultDegParam[0] = self.jointsCalculator.calculateLinks(90, 1)
+        # Velocity calculation variables
+        self.time_current = 0
+        self.prev_time = 0
+        self.dv1 = [0.0, 0.0, 0.0]
+        self.v1 = [0.0, 0.0, 0.0]
+        self.dv2 = [0.0, 0.0, 0.0]
+        self.v2 = [0.0, 0.0, 0.0]
+        self.gYPR_1 = [0.0, 0.0, 0.0]
+        self.aXYZ_1 = [0.0, 0.0, 0.0]
+        self.gYPR_2 = [0.0, 0.0, 0.0]
+        self.aXYZ_2 = [0.0, 0.0, 0.0]
+
         #######################################################################
         print(self.defaultDegParam)
 
@@ -142,6 +154,8 @@ class MainWindow(QMainWindow):
         #######################################################################
 
         self.x,self.y = self.jointsCalculator.calculateLinks(self.i)
+        self.time_current = round(time.time() * 1000)
+        self.prev_time = self.time_current
         self.update_plot()
 
         self.show()
@@ -151,59 +165,57 @@ class MainWindow(QMainWindow):
         self.timer.start()
 
     def update_plot(self):
-        v1X = 0.0
-        v1Y = 0.0
-        v1Z = 0.0
-        a1X = 0.0
-        a1Y = 0.0
-        a1Z = 0.0
-
-        v2X = 0.0
-        v2Y = 0.0
-        v2Z = 0.0
-        a2X = 0.0
-        a2Y = 0.0
-        a2Z = 0.0
+        
         if self.isConnected:
             _buffer = self.serialComm.getBuffer(2)
             if _buffer != 0:
                 buffer = self.serialComm.castBuffer(_buffer)
-                v1X = buffer[3]
-                v1Y = buffer[4]
-                v1Z = buffer[5]
-                a1X = buffer[0]
-                a1Y = buffer[1]
-                a1Z = buffer[2]
+                self.gYPR_1[0] = buffer[3]
+                self.gYPR_1[1] = buffer[4]
+                self.gYPR_1[2] = buffer[5]
+                self.aXYZ_1[0] = buffer[0]
+                self.aXYZ_1[1] = buffer[1]
+                self.aXYZ_1[2] = buffer[2]
 
-                v2X = buffer[9]
-                v2Y = buffer[10]
-                v2Z = buffer[11]
-                a2X = buffer[6]
-                a2Y = buffer[7]
-                a2Z = buffer[8]
+                self.gYPR_2[0] = buffer[9]
+                self.gYPR_2[1] = buffer[10]
+                self.gYPR_2[2] = buffer[11]
+                self.aXYZ_2[0] = buffer[6]
+                self.aXYZ_2[1] = buffer[7]
+                self.aXYZ_2[2] = buffer[8]
+                
+        # calculate velocity
+        self.time_current = round(time.time() * 1000)
+        for i in range(3):
+            self.dv1[i] = self.aXYZ_1[i] * (self.time_current - self.prev_time)
+            self.v1[i] = self.v1[i] + self.dv1[i]
+            self.dv2[i] = self.aXYZ_2[i] * (self.time_current - self.prev_time)
+            self.v2[i] = self.v2[i] + self.dv2[i]
+        self.prev_time = self.time_current
+
+
         # fetch from arduino v and a 
         self.deg1 = 0 + self.defaultDegParam[self.jointsCalculator.mode][0] - self.gyroOffset1
         self.deg2 = 0 + self.defaultDegParam[self.jointsCalculator.mode][1] - self.gyroOffset2
         #print(self.jointsCalculator.mode)
         
 
-        self.velocityBox1.vX.setText(str(v1X))
-        self.velocityBox1.vY.setText(str(v1Y))
-        self.velocityBox1.vZ.setText(str(v1Z))
+        self.velocityBox1.vX.setText(str(self.gYPR_1[0]))
+        self.velocityBox1.vY.setText(str(self.gYPR_1[1]))
+        self.velocityBox1.vZ.setText(str(self.gYPR_1[2]))
 
-        self.accelerationBox1.aX.setText(str(a1X))
-        self.accelerationBox1.aY.setText(str(a1Y))
-        self.accelerationBox1.aZ.setText(str(a1Z))
+        self.accelerationBox1.aX.setText(str(self.aXYZ_1[0]))
+        self.accelerationBox1.aY.setText(str(self.aXYZ_1[1]))
+        self.accelerationBox1.aZ.setText(str(self.aXYZ_1[2]))
 
-        self.velocityBox2.vX.setText(str(v2X))
-        self.velocityBox2.vY.setText(str(v2Y))
-        self.velocityBox2.vZ.setText(str(v2Z))
+        self.velocityBox2.vX.setText(str(self.gYPR_2[0]))
+        self.velocityBox2.vY.setText(str(self.gYPR_2[1]))
+        self.velocityBox2.vZ.setText(str(self.gYPR_2[2]))
 
-        self.accelerationBox2.aX.setText(str(a2X))
-        self.accelerationBox2.aY.setText(str(a2Y))
-        self.accelerationBox2.aZ.setText(str(a2Z))
+        self.accelerationBox2.aX.setText(str(self.aXYZ_2[0]))
+        self.accelerationBox2.aY.setText(str(self.aXYZ_2[1]))
+        self.accelerationBox2.aZ.setText(str(self.aXYZ_2[2]))
         # calculate joints
-        # TODO: Calculate
         #self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
         self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)
         self.data_line.setData(self.x, self.y)
@@ -221,6 +233,11 @@ class MainWindow(QMainWindow):
     def resetEvent(self):
         # reset gyro back to default position
         # gyro-offset = gyro-val
+        for i in range(3):
+            self.dv1[i] = 0
+            self.v1[i] = 0
+            self.dv2[i] = 0
+            self.v2[i] = 0
         self.gyroOffset1 = 0 # real gyro value
         self.gyroOffset2 = 0  # real gyro value
         self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.defaultDegParam[self.jointsCalculator.mode][0], self.defaultDegParam[self.jointsCalculator.mode][1])
