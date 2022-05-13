@@ -62,7 +62,7 @@ class SerialComms:
                 self.buffer = [None]*52
                 return return_buffer
             else:
-                if self.cmdIndex < self.cmdLength:
+                if self.cmdIndex < self.cmdLength - 1:
                     self.cmdIndex += 1
                 else:
                     self.cmdIndex = 0
