@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
         self.aXYZ_2 = [0.0, 0.0, 0.0]
         self.aXYZ_offset_2 = [0.0, 0.0, 0.0]        
         #######################################################################
-        print(self.defaultDegParam)
+        #print(self.defaultDegParam)
 
         
         #################### Window's Widgets Initialization ####################
@@ -152,6 +152,9 @@ class MainWindow(QMainWindow):
         self.infolayout.columnStretch(2)
         widget.setLayout(self.page_layout)
         self.setCentralWidget(widget)
+
+        exit_action = QAction('EXIT', self)
+        exit_action.triggered.connect(self.closeEvent)
         #######################################################################
 
         self.x,self.y = self.jointsCalculator.calculateLinks(self.i)
@@ -301,6 +304,11 @@ class MainWindow(QMainWindow):
             msg.setIcon(QMessageBox.Critical)
             msg.setText("Please choose Port after successful disconnection")
             msg.exec_()
+
+    def closeEvent(self, event):
+        print('shit event: {0}'.format(event))
+        f = self.serialComm.disconnect()
+        print(str(f))
 
 
 class Velocity(QWidget):
