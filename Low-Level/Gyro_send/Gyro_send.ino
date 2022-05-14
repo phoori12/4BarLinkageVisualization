@@ -1,3 +1,6 @@
+#include <Arduino.h>
+
+
 #include "I2Cdev.h"
 
 #include "MPU6050_6Axis_MotionApps20.h"
@@ -82,6 +85,8 @@ union packed_float {
 // ================================================================
 
 
+void sendCmd(float ypr1[], float acc1[], float ypr2[], float acc2[]);
+
 void setup() {
     #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
         Wire.begin();
@@ -93,7 +98,7 @@ void setup() {
     // initialize serial communication
     // (115200 chosen because it is required for Teapot Demo output, but it's
     // really up to you depending on your project)
-    Serial.begin(9600);
+    Serial.begin(115200);
     while (!Serial); 
 
     delay(500);
@@ -202,7 +207,7 @@ void setup() {
 // ================================================================
 
 void loop() {
-
+  
   // MPU_1 Fetch //
   if (!dmpReady_MPU1) return;
 
@@ -214,24 +219,24 @@ void loop() {
     ypr_USED_MPU1[0] = ypr_MPU1[0] * 180/M_PI;
     ypr_USED_MPU1[1] = ypr_MPU1[1] * 180/M_PI;
     ypr_USED_MPU1[2] = ypr_MPU1[2] * 180/M_PI;
-    Serial.print("ypr1\t");
-    Serial.print(ypr_USED_MPU1[0]);
-    Serial.print("\t");
-    Serial.print(ypr_USED_MPU1[1]);
-    Serial.print("\t");
-    Serial.print(ypr_USED_MPU1[2]);
-    Serial.print("\t");
+    // Serial.print("ypr1\t");
+    // Serial.print(ypr_USED_MPU1[0]);
+    // Serial.print("\t");
+    // Serial.print(ypr_USED_MPU1[1]);
+    // Serial.print("\t");
+    // Serial.print(ypr_USED_MPU1[2]);
+    // Serial.print("\t");
     mpu1.dmpGetLinearAccel(&aaReal_MPU1, &aa_MPU1, &gravity_MPU1);
     mpu1.dmpGetLinearAccelInWorld(&aaWorld_MPU1, &aaReal_MPU1, &q_MPU1);
     acc_USED_MPU1[0] = ((float)aaWorld_MPU1.x) / 16384.0;
     acc_USED_MPU1[1] = ((float)aaWorld_MPU1.y) / 16384.0;
     acc_USED_MPU1[2] = ((float)aaWorld_MPU1.z) / 16384.0;
-    Serial.print("aworld1\t");
-    Serial.print(acc_USED_MPU1[0]);
-    Serial.print("\t");
-    Serial.print(acc_USED_MPU1[1]);
-    Serial.print("\t");
-    Serial.print(acc_USED_MPU1[2]);
+    // Serial.print("aworld1\t");
+    // Serial.print(acc_USED_MPU1[0]);
+    // Serial.print("\t");
+    // Serial.print(acc_USED_MPU1[1]);
+    // Serial.print("\t");
+    // Serial.print(acc_USED_MPU1[2]);
   }
   // MPU_2 Fetch //
   if (!dmpReady_MPU2) return;
@@ -244,25 +249,25 @@ void loop() {
     ypr_USED_MPU2[0] = ypr_MPU2[0] * 180/M_PI;
     ypr_USED_MPU2[1] = ypr_MPU2[1] * 180/M_PI;
     ypr_USED_MPU2[2] = ypr_MPU2[2] * 180/M_PI;
-    Serial.print("\t|\typr2\t");
-    Serial.print(ypr_USED_MPU2[0]);
-    Serial.print("\t");
-    Serial.print(ypr_USED_MPU2[0]);
-    Serial.print("\t");
-    Serial.print(ypr_USED_MPU2[0]);
-    Serial.print("\t");
+    // Serial.print("\t|\typr2\t");
+    // Serial.print(ypr_USED_MPU2[0]);
+    // Serial.print("\t");
+    // Serial.print(ypr_USED_MPU2[0]);
+    // Serial.print("\t");
+    // Serial.print(ypr_USED_MPU2[0]);
+    // Serial.print("\t");
     
     mpu2.dmpGetLinearAccel(&aaReal_MPU2, &aa_MPU2, &gravity_MPU2);
     mpu2.dmpGetLinearAccelInWorld(&aaWorld_MPU2, &aaReal_MPU2, &q_MPU2);
     acc_USED_MPU2[0] = ((float)aaWorld_MPU2.x) / 16384.0;
     acc_USED_MPU2[1] = ((float)aaWorld_MPU2.y) / 16384.0;
     acc_USED_MPU2[2] = ((float)aaWorld_MPU2.z) / 16384.0;   
-    Serial.print("aworld2\t");
-    Serial.print(acc_USED_MPU2[0]);
-    Serial.print("\t");
-    Serial.print(acc_USED_MPU2[1]);
-    Serial.print("\t");
-    Serial.println(acc_USED_MPU2[2]);
+    // Serial.print("aworld2\t");
+    // Serial.print(acc_USED_MPU2[0]);
+    // Serial.print("\t");
+    // Serial.print(acc_USED_MPU2[1]);
+    // Serial.print("\t");
+    // Serial.println(acc_USED_MPU2[2]);
 //    sendCmd(accX, accY, accZ, ypr[0] * 180/M_PI, ypr[1] * 180/M_PI, ypr[2] * 180/M_PI);
   }
 
@@ -317,4 +322,3 @@ void sendCmd(float ypr1[], float acc1[], float ypr2[], float acc2[]) {
 //  prev_time_acc = time_acc;
 //  return v;
 //} calculate in high level
- 
