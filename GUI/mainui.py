@@ -14,8 +14,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        self.setWindowTitle("IMU Project")
-        #self.setFixedSize(self.size())
+        self.setWindowTitle("4Bar Linkage Visualization")
 
         #################### Class Variable Initialization ####################
         self.isConnected = False
@@ -40,11 +39,11 @@ class MainWindow(QMainWindow):
         # Variable for gyro forced resets
         self.defaultDegParam = [[],[],[]]
         self.jointsCalculator.mode = 1
-        self.defaultDegParam[1] = self.jointsCalculator.calculateLinks(90, 1)
+        self.defaultDegParam[1] = self.jointsCalculator.calculateLinks(90, 1) # องศา default ของโหมด 1 (Double Crank)
         self.jointsCalculator.mode = 2
-        self.defaultDegParam[2] = self.jointsCalculator.calculateLinks(90, 1)
+        self.defaultDegParam[2] = self.jointsCalculator.calculateLinks(90, 2) # องศา default ของโหมด 2 (Double Rocker)
         self.jointsCalculator.mode = 0
-        self.defaultDegParam[0] = self.jointsCalculator.calculateLinks(90, 1)
+        self.defaultDegParam[0] = self.jointsCalculator.calculateLinks(90, 0) # องศา default ของโหมด 0 (Crank Rocker)
         # Velocity calculation variables
         self.time_current = 0
         self.prev_time = 0
@@ -59,7 +58,6 @@ class MainWindow(QMainWindow):
         self.aXYZ_2 = [0.0, 0.0, 0.0]
         self.aXYZ_offset_2 = [0.0, 0.0, 0.0]        
         #######################################################################
-        #print(self.defaultDegParam)
 
         
         #################### Window's Widgets Initialization ####################
@@ -72,30 +70,6 @@ class MainWindow(QMainWindow):
         self.serialConnect = QPushButton()
         self.serialDisconnect = QPushButton()
         self.serialRefresh = QPushButton()
-        
-        self.serialConnect.setText("Connect")
-        self.serialConnect.move(64,32)
-        self.serialConnect.clicked.connect(self.serialConnectEvent)
-        self.serialDisconnect.setText("Disconnect")
-        self.serialDisconnect.move(64,32)
-        self.serialDisconnect.clicked.connect(self.serialDisconnectEvent)
-        self.serialRefresh.setText("Refresh")
-        self.serialRefresh.move(64,32)
-        self.serialRefresh.clicked.connect(self.serialRefreshEvent)
-
-        serialPorts = self.serialComm.listPorts()
-        for s in serialPorts:
-            self.serialPortsList.addItem(s)
-        self.serialPortsList.currentIndexChanged.connect(self.serialSelectionChange)
-        self.serialComm.ser.port = self.serialPortsList.itemText(0)
-        
-        self.serialBox.addWidget(self.serialPortsList)
-        self.serialBox.addWidget(self.serialRefresh)
-        self.serialBox.addWidget(self.serialConnect)
-        self.serialBox.addWidget(self.serialDisconnect)
-
-
-
         self.graphTitle = QLabel()
         self.visualizeBox = QHBoxLayout()
         self.graphBox = QVBoxLayout()
@@ -109,6 +83,27 @@ class MainWindow(QMainWindow):
         self.accelerationBox1 = Acceleration()
         self.accelerationBox2 = Acceleration()
         self.resetButton = QPushButton()
+
+        # Serial UInterface Setup
+        self.serialConnect.setText("Connect")
+        self.serialConnect.move(64,32)
+        self.serialConnect.clicked.connect(self.serialConnectEvent)
+        self.serialDisconnect.setText("Disconnect")
+        self.serialDisconnect.move(64,32)
+        self.serialDisconnect.clicked.connect(self.serialDisconnectEvent)
+        self.serialRefresh.setText("Refresh")
+        self.serialRefresh.move(64,32)
+        self.serialRefresh.clicked.connect(self.serialRefreshEvent)
+        serialPorts = self.serialComm.listPorts()
+        for s in serialPorts:
+            self.serialPortsList.addItem(s)
+        self.serialPortsList.currentIndexChanged.connect(self.serialSelectionChange)
+        self.serialComm.ser.port = self.serialPortsList.itemText(0)
+        self.serialBox.addWidget(self.serialPortsList)
+        self.serialBox.addWidget(self.serialRefresh)
+        self.serialBox.addWidget(self.serialConnect)
+        self.serialBox.addWidget(self.serialDisconnect)
+        
         # QTGRAPH Widget Setup
         self.graphTitle.setText("จอแสดงผลการเคลื่อนที่ของก้านโยง")
         self.graphTitle.setAlignment(Qt.AlignCenter)
@@ -117,21 +112,24 @@ class MainWindow(QMainWindow):
         self.graphWidget.setYRange(-0.5,0.5)
         self.graphWidget.setStyleSheet("border: 4px solid black;")
         pen = pg.mkPen(color=(0, 255, 255), width=3)
-        #self.data_line = self.graphWidget.plot(self.x, self.y, pen=pen)
         self.data_line = self.graphWidget.plot(self.x, self.y, pen=pen, symbol='o')
+
         # Dropdown Widget Setup
         self.dropdownBox.addItem("Crank Rocker")
         self.dropdownBox.addItem("Double Crank")
         self.dropdownBox.addItem("Double Rocker")
         self.dropdownBox.currentIndexChanged.connect(self.selectionChange)
+
         # Header Widget Setup
         self.sensorReadH.setText("ค่าที่อ่านได้จากเซ็นเซอร์")
         self.link2H.setText("Link 2")
         self.link4H.setText("Link 4")
+
         # Button Setup
         self.resetButton.setText("Reset")
         self.resetButton.move(64,32)
         self.resetButton.clicked.connect(self.resetEvent)
+
         # Page Construction
         self.graphBox.addWidget(self.graphTitle)
         self.graphBox.addWidget(self.graphWidget)
@@ -152,7 +150,6 @@ class MainWindow(QMainWindow):
         self.infolayout.columnStretch(2)
         widget.setLayout(self.page_layout)
         self.setCentralWidget(widget)
-
         exit_action = QAction('EXIT', self)
         exit_action.triggered.connect(self.closeEvent)
         #######################################################################
@@ -188,7 +185,7 @@ class MainWindow(QMainWindow):
                 self.aXYZ_2[1] = buffer[7]
                 self.aXYZ_2[2] = buffer[8]
                 
-        # calculate velocity
+        # คำนวนความเร็ว #
         self.time_current = round(time.time())
         for i in range(3):
             self.dv1[i] = (self.aXYZ_1[i]-self.aXYZ_offset_1[i]) * (self.time_current - self.prev_time) 
@@ -197,33 +194,26 @@ class MainWindow(QMainWindow):
             self.v2[i] = round((self.v2[i] + self.dv2[i]),2)
         self.prev_time = self.time_current
 
-
-        # fetch from arduino v and a 
         self.deg1 = self.gYPR_1[0] + self.defaultDegParam[self.jointsCalculator.mode][0] - self.gyroOffset1
         self.deg2 = self.gYPR_2[0] + self.defaultDegParam[self.jointsCalculator.mode][1] - self.gyroOffset2
-        #print(self.jointsCalculator.mode)
-        
 
         self.velocityBox1.vX.setText(str(self.v1[0]))
         self.velocityBox1.vY.setText(str(self.v1[1]))
         self.velocityBox1.vZ.setText(str(self.v1[2]))
-
         self.accelerationBox1.aX.setText(str(self.aXYZ_1[0]))
         self.accelerationBox1.aY.setText(str(self.aXYZ_1[1]))
         self.accelerationBox1.aZ.setText(str(self.aXYZ_1[2]))
-
         self.velocityBox2.vX.setText(str(self.v2[0]))
         self.velocityBox2.vY.setText(str(self.v2[1]))
         self.velocityBox2.vZ.setText(str(self.v2[2]))
-
         self.accelerationBox2.aX.setText(str(self.aXYZ_2[0]))
         self.accelerationBox2.aY.setText(str(self.aXYZ_2[1]))
         self.accelerationBox2.aZ.setText(str(self.aXYZ_2[2]))
-        # calculate joints
-        #self.x,self.y=self.jointsCalculator.calculateLinks(self.deg1)
-        self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)
+
+        # นำค่า Gyro (Pitch) มาวาดแขน #
+        #self.x,self.y=self.jointsCalculator.calculateLinks(self.deg1)  # ใช้ค่าของ Gyro แล้วคำนวนองศาแขนอีกข้างเอง
+        self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)  # วาดแขนจากองศาของ Gyro ทั้ง 2 ตัว
         self.data_line.setData(self.x, self.y)
-        #self.i = self.i + 10
 
     def selectionChange(self, i):
         if i != 0:
@@ -232,11 +222,9 @@ class MainWindow(QMainWindow):
             self.graphWidget.setXRange(-0.1,0.3)
         self.jointsCalculator.mode = i
         self.resetEvent()
-        # self.x,self.y=self.jointsCalculator.calculateLinks(self.i)
 
     def resetEvent(self):
-        # reset gyro back to default position
-        # gyro-offset = gyro-val
+        # RESET ค่่า Gyro กับความเร็ว
         for i in range(3):
             self.dv1[i] = 0
             self.v1[i] = 0
@@ -245,10 +233,9 @@ class MainWindow(QMainWindow):
             self.aXYZ_offset_1[i] = self.aXYZ_1[i]
             self.aXYZ_offset_2[i] = self.aXYZ_2[i]
 
-        # TODO: add offset for acceleration
         self.gyroOffset1 = self.gYPR_1[0] # real gyro value
         self.gyroOffset2 = self.gYPR_2[0]  # real gyro value
-        self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.defaultDegParam[self.jointsCalculator.mode][0], self.defaultDegParam[self.jointsCalculator.mode][1])
+        self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.defaultDegParam[self.jointsCalculator.mode][0], self.defaultDegParam[self.jointsCalculator.mode][1]) # Set มุมต่างๆกลับเป็น Default และวาด link
         self.data_line.setData(self.x, self.y)
 
     def serialRefreshEvent(self):
@@ -306,9 +293,7 @@ class MainWindow(QMainWindow):
             msg.exec_()
 
     def closeEvent(self, event):
-        print('shit event: {0}'.format(event))
-        f = self.serialComm.disconnect()
-        print(str(f))
+        self.serialComm.disconnect()
 
 
 class Velocity(QWidget):

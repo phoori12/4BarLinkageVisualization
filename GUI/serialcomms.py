@@ -70,6 +70,7 @@ class SerialComms:
                     self.cmdIndex += 1
                     print(f'cmdIndex, {0}', self.cmdIndex)
                 else:
+                    print(self.buffer)
                     self.buffer = [None]*52
                     self.cmdIndex = 0
                     self.ser.reset_input_buffer()
