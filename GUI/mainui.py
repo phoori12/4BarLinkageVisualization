@@ -41,9 +41,9 @@ class MainWindow(QMainWindow):
         self.jointsCalculator.mode = 1
         self.defaultDegParam[1] = self.jointsCalculator.calculateLinks(90, 1) # องศา default ของโหมด 1 (Double Crank)
         self.jointsCalculator.mode = 2
-        self.defaultDegParam[2] = self.jointsCalculator.calculateLinks(90, 2) # องศา default ของโหมด 2 (Double Rocker)
+        self.defaultDegParam[2] = self.jointsCalculator.calculateLinks(90, 1) # องศา default ของโหมด 2 (Double Rocker)
         self.jointsCalculator.mode = 0
-        self.defaultDegParam[0] = self.jointsCalculator.calculateLinks(90, 0) # องศา default ของโหมด 0 (Crank Rocker)
+        self.defaultDegParam[0] = self.jointsCalculator.calculateLinks(90, 1) # องศา default ของโหมด 0 (Crank Rocker)
         # Velocity calculation variables
         self.time_current = 0
         self.prev_time = 0
