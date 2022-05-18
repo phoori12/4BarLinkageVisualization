@@ -45,6 +45,8 @@ class MainWindow(QMainWindow):
         self.jointsCalculator.mode = 0
         self.defaultDegParam[0] = self.jointsCalculator.calculateLinks(90, 1) # องศา default ของโหมด 0 (Crank Rocker)
         # Velocity calculation variables
+        self.speedLink2 = 0.0 # XZ
+        self.speedLink4 = 0.0
         self.time_current = 0
         self.prev_time = 0
         self.dv1 = [0.0, 0.0, 0.0]
@@ -197,12 +199,17 @@ class MainWindow(QMainWindow):
         self.deg1 = self.gYPR_1[0] + self.defaultDegParam[self.jointsCalculator.mode][0] - self.gyroOffset1
         self.deg2 = self.gYPR_2[0] + self.defaultDegParam[self.jointsCalculator.mode][1] - self.gyroOffset2
 
+        self.speedLink2 = sqrt(self.v1[0]**2 + self.v1[2]**2)
+        self.speedLink4 = sqrt(self.v2[0]**2 + self.v2[2]**2)
+
+        self.velocityBox1.vM.setText(str(self.speedLink2))
         self.velocityBox1.vX.setText(str(self.v1[0]))
         self.velocityBox1.vY.setText(str(self.v1[1]))
         self.velocityBox1.vZ.setText(str(self.v1[2]))
         self.accelerationBox1.aX.setText(str(self.aXYZ_1[0]))
         self.accelerationBox1.aY.setText(str(self.aXYZ_1[1]))
         self.accelerationBox1.aZ.setText(str(self.aXYZ_1[2]))
+        self.velocityBox2.vM.setText(str(self.speedLink4))
         self.velocityBox2.vX.setText(str(self.v2[0]))
         self.velocityBox2.vY.setText(str(self.v2[1]))
         self.velocityBox2.vZ.setText(str(self.v2[2]))
@@ -211,8 +218,8 @@ class MainWindow(QMainWindow):
         self.accelerationBox2.aZ.setText(str(self.aXYZ_2[2]))
 
         # นำค่า Gyro (Pitch) มาวาดแขน #
-        #self.x,self.y=self.jointsCalculator.calculateLinks(self.deg1)  # ใช้ค่าของ Gyro แล้วคำนวนองศาแขนอีกข้างเอง
-        self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)  # วาดแขนจากองศาของ Gyro ทั้ง 2 ตัว
+        self.x,self.y=self.jointsCalculator.calculateLinks(self.deg1)  # ใช้ค่าของ Gyro แล้วคำนวนองศาแขนอีกข้างเอง
+        #self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)  # วาดแขนจากองศาของ Gyro ทั้ง 2 ตัว
         self.data_line.setData(self.x, self.y)
 
     def selectionChange(self, i):
@@ -300,9 +307,11 @@ class Velocity(QWidget):
     def __init__(self):
         super(Velocity, self).__init__()
         self.velo = QLabel()
+        self.m = QLabel()
         self.x = QLabel()
         self.y = QLabel()
         self.z = QLabel()
+        self.unit0 = QLabel()
         self.unit1 = QLabel()
         self.unit2 = QLabel()
         self.unit3 = QLabel()
@@ -311,27 +320,34 @@ class Velocity(QWidget):
         self.vX = QLabel()
         self.vY = QLabel()
         self.vZ = QLabel()
+        self.vM = QLabel()
 
         self.velo.setText("Velocity")   
+        self.m.setText("Magnitute:")  
         self.x.setText("X:")  
         self.y.setText("Y:")
         self.z.setText("Z:")
+        self.unit0.setText("m/s")
         self.unit1.setText("m/s")
         self.unit2.setText("m/s")
         self.unit3.setText("m/s")
+        self.vM.setText("0.0")
         self.vX.setText("0.0")
         self.vY.setText("0.0")
         self.vZ.setText("0.0")
         self.velocityBox.addWidget(self.velo)
-        self.velocityGrid.addWidget(self.x, 0, 0)
-        self.velocityGrid.addWidget(self.y, 1, 0)
-        self.velocityGrid.addWidget(self.z, 2, 0)
-        self.velocityGrid.addWidget(self.vX, 0, 1)
-        self.velocityGrid.addWidget(self.vY, 1, 1)
-        self.velocityGrid.addWidget(self.vZ, 2, 1)
-        self.velocityGrid.addWidget(self.unit1, 0, 2)
-        self.velocityGrid.addWidget(self.unit2, 1, 2)
-        self.velocityGrid.addWidget(self.unit3, 2, 2)
+        self.velocityGrid.addWidget(self.m, 0, 0)
+        self.velocityGrid.addWidget(self.x, 1, 0)
+        self.velocityGrid.addWidget(self.y, 2, 0)
+        self.velocityGrid.addWidget(self.z, 3, 0)
+        self.velocityGrid.addWidget(self.vM, 0, 1)
+        self.velocityGrid.addWidget(self.vX, 1, 1)
+        self.velocityGrid.addWidget(self.vY, 2, 1)
+        self.velocityGrid.addWidget(self.vZ, 3, 1)
+        self.velocityGrid.addWidget(self.unit0, 0, 2)
+        self.velocityGrid.addWidget(self.unit1, 1, 2)
+        self.velocityGrid.addWidget(self.unit2, 2, 2)
+        self.velocityGrid.addWidget(self.unit3, 3, 2)
         self.velocityBox.addLayout(self.velocityGrid)
 
 class Acceleration(QWidget):
