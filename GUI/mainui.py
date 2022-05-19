@@ -112,9 +112,13 @@ class MainWindow(QMainWindow):
         self.graphWidget.setBackground('w')
         self.graphWidget.setXRange(-0.1,0.3)
         self.graphWidget.setYRange(-0.5,0.5)
+        # self.graphWidget.setXRange(-1,1)
+        # self.graphWidget.setYRange(-1,1)
         self.graphWidget.setStyleSheet("border: 4px solid black;")
         pen = pg.mkPen(color=(0, 255, 255), width=3)
         self.data_line = self.graphWidget.plot(self.x, self.y, pen=pen, symbol='o')
+        self.graphWidget.setAspectLocked(True)
+        self.graphWidget.showGrid(x=True, y=True)
 
         # Dropdown Widget Setup
         self.dropdownBox.addItem("Crank Rocker")
@@ -154,6 +158,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         exit_action = QAction('EXIT', self)
         exit_action.triggered.connect(self.closeEvent)
+        #self.iii = 0
         #######################################################################
 
         self.x,self.y = self.jointsCalculator.calculateLinks(self.i)
@@ -166,6 +171,7 @@ class MainWindow(QMainWindow):
         self.timer.setInterval(10)
         self.timer.timeout.connect(self.update_plot)
         self.timer.start()
+
 
     def update_plot(self):
         
@@ -216,11 +222,12 @@ class MainWindow(QMainWindow):
         self.accelerationBox2.aX.setText(str(self.aXYZ_2[0]))
         self.accelerationBox2.aY.setText(str(self.aXYZ_2[1]))
         self.accelerationBox2.aZ.setText(str(self.aXYZ_2[2]))
-
+        
         # นำค่า Gyro (Pitch) มาวาดแขน #
         self.x,self.y=self.jointsCalculator.calculateLinks(self.deg1)  # ใช้ค่าของ Gyro แล้วคำนวนองศาแขนอีกข้างเอง
         #self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)  # วาดแขนจากองศาของ Gyro ทั้ง 2 ตัว
         self.data_line.setData(self.x, self.y)
+        # self.iii += 1
 
     def selectionChange(self, i):
         if i != 0:
