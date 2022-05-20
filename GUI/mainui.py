@@ -304,8 +304,10 @@ class MainWindow(QMainWindow):
     def selectionChange(self, i):
         if i != 0:
             self.graphWidget.setXRange(-0.2,0.3)
+            self.graphWidget.setYRange(-0.5,0.5)
         else:
             self.graphWidget.setXRange(-0.1,0.3)
+            self.graphWidget.setYRange(-0.5,0.5)
         self.jointsCalculator.mode = i
         self.resetEvent()
 
