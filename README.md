@@ -11,8 +11,10 @@ ESP32BoardManager Version 2.0.0
 
 ## วิธีใข้ Logging
 1. กด Start Logging เพื่อเริ่ม Logging
-2. กด Stop Logging เพิือหยุด Logging
+2. กด Stop Logging เพื่อหยุด Logging
+
   ** ถ้ากด Stop แล้ว Start ใหม่โปรแกรมจะไปสร้างไฟล์ใหม่แล้วเก็บ Log ใส่ไฟล์นั้นแทน 
+  
   ** format ชื่อไฟล์จะเป็น 'results' + timestamp + '.csv'
 
 ## บัคในโปรแกรม
