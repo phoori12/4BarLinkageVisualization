@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):
         self.LogState = False
         self.date_time = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
         self.str_date_time = self.date_time.strftime("%d-%m-%Y:%H:%M:%S:%f")
-        self.fileName = f'results{self.date_time.strftime("%d:%m:%Y-%H:%M:%S")}.csv'
+        self.fileName = f'logging/results{self.date_time.strftime("%d:%m:%Y-%H:%M:%S")}.csv'
         self.csvFile= open(self.fileName, 'w')
         self.writer = csv.writer(self.csvFile)
         self.LogDict = {
@@ -385,11 +385,36 @@ class MainWindow(QMainWindow):
             self.stopLogEvent()
 
     def startLogEvent(self):
-        self.LogState = True
+        msg = QMessageBox()
+        msg.setStandardButtons(QMessageBox.Ok)
+        if not self.LogState:
+            self.LogState = True
+            self.date_time = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
+            self.str_date_time = self.date_time.strftime("%d-%m-%Y:%H:%M:%S:%f")
+            self.fileName = f'logging/results{self.date_time.strftime("%d:%m:%Y-%H:%M:%S")}.csv'
+            self.csvFile= open(self.fileName, 'w')
+            self.writer = csv.writer(self.csvFile)
+            msg.setIcon(QMessageBox.Information)
+            msg.setText("Logging Start!")
+        else:
+            msg.setIcon(QMessageBox.Question)
+            msg.setText("Logging has Already Started!")
+        msg.exec_()
+         
 
     def stopLogEvent(self):
-        self.LogState = False
-        self.csvFile.close()
+        msg = QMessageBox()
+        msg.setStandardButtons(QMessageBox.Ok)
+        if self.LogState:
+            self.LogState = False
+            self.csvFile.close()
+            msg.setIcon(QMessageBox.Information)
+            msg.setText("Logging Stop!")
+        else:
+            msg.setIcon(QMessageBox.Question)
+            msg.setText("No Logging has been started")
+        msg.exec_()
+        
 
     def event_handler_values_update(self, logMsg, writer):
         writer.writerow([logMsg]) ##
