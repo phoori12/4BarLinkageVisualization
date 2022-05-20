@@ -9,6 +9,8 @@ from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
 from Fbarequations import FBarEquations
 from serialcomms import SerialComms
+import csv
+from datetime import datetime
 
 class MainWindow(QMainWindow):
 
@@ -58,7 +60,34 @@ class MainWindow(QMainWindow):
         self.aXYZ_offset_1 = [0.0, 0.0, 0.0]
         self.gYPR_2 = [0.0, 0.0, 0.0]
         self.aXYZ_2 = [0.0, 0.0, 0.0]
-        self.aXYZ_offset_2 = [0.0, 0.0, 0.0]        
+        self.aXYZ_offset_2 = [0.0, 0.0, 0.0]
+        # Logging Variable
+        
+        self.LogState = False
+        self.date_time = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
+        self.str_date_time = self.date_time.strftime("%d-%m-%Y:%H:%M:%S:%f")
+        self.fileName = f'results{self.date_time.strftime("%d:%m:%Y-%H:%M:%S")}.csv'
+        self.csvFile= open(self.fileName, 'w')
+        self.writer = csv.writer(self.csvFile)
+        self.LogDict = {
+            "Timestamp": self.str_date_time,
+            "Gyro1":"0.0",
+            "Vx1":"0.0",
+            "Vy1":"0.0",
+            "Vz1":"0.0",
+            "Vm1":"0.0",
+            "Ax1":"0.0",
+            "Ay1":"0.0",
+            "Az1":"0.0",
+            "Gyro2":"0.0",
+            "Vx2":"0.0",
+            "Vy2":"0.0",
+            "Vz2":"0.0",
+            "Vm2":"0.0",
+            "Ax2":"0.0",
+            "Ay2":"0.0",
+            "Az2":"0.0",
+        }
         #######################################################################
 
         
@@ -66,7 +95,6 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         self.graphWidget = pg.PlotWidget()
         self.dropdownBox = QComboBox()
-        
         self.serialBox = QHBoxLayout()
         self.serialPortsList = QComboBox()
         self.serialConnect = QPushButton()
@@ -85,6 +113,8 @@ class MainWindow(QMainWindow):
         self.accelerationBox1 = Acceleration()
         self.accelerationBox2 = Acceleration()
         self.resetButton = QPushButton()
+        self.startLoggingButton = QPushButton()
+        self.stopLoggingButton = QPushButton()
 
         # Serial UInterface Setup
         self.serialConnect.setText("Connect")
@@ -136,6 +166,22 @@ class MainWindow(QMainWindow):
         self.resetButton.move(64,32)
         self.resetButton.clicked.connect(self.resetEvent)
 
+        # Button Setup
+        self.startLoggingButton.setText("Start Logging")
+        self.startLoggingButton.move(64,32)
+        self.startLoggingButton.clicked.connect(self.startLogEvent)
+
+        # Button Setup
+        self.stopLoggingButton.setText("Stop Logging")
+        self.stopLoggingButton.move(64,32)
+        self.stopLoggingButton.clicked.connect(self.stopLogEvent)
+
+        # Logging Box and Button Setup
+        self.loggingBox = QGridLayout()
+        self.loggingBox.addWidget(self.sensorReadH, 0,1)
+        self.loggingBox.addWidget(self.startLoggingButton, 0,2)
+        self.loggingBox.addWidget(self.stopLoggingButton, 0,3)
+
         # Page Construction
         self.graphBox.addWidget(self.graphTitle)
         self.graphBox.addWidget(self.graphWidget)
@@ -143,7 +189,7 @@ class MainWindow(QMainWindow):
         self.visualizeBox.addLayout(self.graphBox)
         self.page_layout.addLayout(self.visualizeBox)
         self.page_layout.addLayout(self.serialBox)
-        self.page_layout.addWidget(self.sensorReadH)
+        self.page_layout.addLayout(self.loggingBox)
         self.page_layout.addLayout(self.infolayout)
         self.infolayout.setContentsMargins(10,10,10,10)
         self.infolayout.addWidget(self.link2H, 0,0, alignment=Qt.AlignTop)
@@ -227,6 +273,32 @@ class MainWindow(QMainWindow):
         self.x,self.y=self.jointsCalculator.calculateLinks(self.deg1)  # ใช้ค่าของ Gyro แล้วคำนวนองศาแขนอีกข้างเอง
         #self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)  # วาดแขนจากองศาของ Gyro ทั้ง 2 ตัว
         self.data_line.setData(self.x, self.y)
+
+        self.date_time = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
+        self.str_date_time = self.date_time.strftime("%d-%m-%Y:%H:%M:%S:%f")
+
+        self.LogDict = {
+            "Timestamp": self.str_date_time,
+            "Gyro1":str(self.deg1),
+            "Vx1": str(self.v1[0]),
+            "Vy1": str(self.v1[1]),
+            "Vz1": str(self.v1[2]),
+            "Vm1":str(self.speedLink2),
+            "Ax1":str(self.aXYZ_1[0]),
+            "Ay1":str(self.aXYZ_1[1]),
+            "Az1":str(self.aXYZ_1[2]),
+            "Gyro2":str(self.deg2),
+            "Vx2":str(self.v2[0]),
+            "Vy2":str(self.v2[1]),
+            "Vz2":str(self.v2[2]),
+            "Vm2":str(self.speedLink4),
+            "Ax2":str(self.aXYZ_2[0]),
+            "Ay2":str(self.aXYZ_2[1]),
+            "Az2":str(self.aXYZ_2[2]),
+        }
+        if self.LogState:
+            self.event_handler_values_update(self.LogDict, self.writer)
+
         # self.iii += 1
 
     def selectionChange(self, i):
@@ -308,7 +380,19 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         self.serialComm.disconnect()
+        if self.LogState:
+            self.LogState = False
+            self.stopLogEvent()
 
+    def startLogEvent(self):
+        self.LogState = True
+
+    def stopLogEvent(self):
+        self.LogState = False
+        self.csvFile.close()
+
+    def event_handler_values_update(self, logMsg, writer):
+        writer.writerow([logMsg]) ##
 
 class Velocity(QWidget):
     def __init__(self):
