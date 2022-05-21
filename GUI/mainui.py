@@ -1,3 +1,4 @@
+from math import radians
 import sys
 import os
 import time
@@ -28,6 +29,11 @@ class MainWindow(QMainWindow):
         self.y = []
         self.deg1 = 0
         self.deg2 = 0
+        self.prev_deg4 = 0
+        self.omega4 = 0
+        self.vR4 = 0
+        self.prev_vR4 = 0
+        self.aR4 = 0
         self.gyro1 = 0
         self.gyro2 = 0
         self.gyroOffset1 = 0
@@ -50,6 +56,8 @@ class MainWindow(QMainWindow):
         # Velocity calculation variables
         self.speedLink2 = 0.0 # XZ
         self.speedLink4 = 0.0
+        self.accelLink2 = 0.0
+        self.accelLink4 = 0.0
         self.time_current = 0
         self.prev_time = 0
         self.dv1 = [0.0, 0.0, 0.0]
@@ -63,7 +71,6 @@ class MainWindow(QMainWindow):
         self.aXYZ_2 = [0.0, 0.0, 0.0]
         self.aXYZ_offset_2 = [0.0, 0.0, 0.0]
         # Logging Variable
-        
         self.LogState = False
         self.dirname = os.path.dirname(__file__)
         self.date_time = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
@@ -72,7 +79,6 @@ class MainWindow(QMainWindow):
         
         self.fileName = f'results{self.date_time.strftime("%d%m%Y%H%M%S")}.csv'
         self.fileName = os.path.join(self.main_direc, self.fileName)
-        #print(self.fileName)
         self.csvFile= open(self.fileName, 'w')
         self.writer = csv.writer(self.csvFile)
         self.LogDict = {
@@ -112,12 +118,15 @@ class MainWindow(QMainWindow):
         self.sensorReadH = QLabel()
         self.link2H = QLabel()
         self.link4H = QLabel()
+        self.link4TH = QLabel()
         self.infolayout = QGridLayout()
         self.page_layout = QVBoxLayout()
         self.velocityBox1 = Velocity()
         self.velocityBox2 = Velocity()
+        self.theoVelocityBox1 = Velocity()
         self.accelerationBox1 = Acceleration()
         self.accelerationBox2 = Acceleration()
+        self.theoAccelerationBox1 = Acceleration()
         self.resetButton = QPushButton()
         self.startLoggingButton = QPushButton()
         self.stopLoggingButton = QPushButton()
@@ -166,18 +175,19 @@ class MainWindow(QMainWindow):
         self.sensorReadH.setText("ค่าที่อ่านได้จากเซ็นเซอร์")
         self.link2H.setText("Link 2")
         self.link4H.setText("Link 4")
+        self.link4TH.setText("Link 4 (Theory)")
 
         # Button Setup
         self.resetButton.setText("Reset")
         self.resetButton.move(64,32)
         self.resetButton.clicked.connect(self.resetEvent)
 
-        # Button Setup
+        # Start Button Setup
         self.startLoggingButton.setText("Start Logging")
         self.startLoggingButton.move(64,32)
         self.startLoggingButton.clicked.connect(self.startLogEvent)
 
-        # Button Setup
+        # Stop Button Setup
         self.stopLoggingButton.setText("Stop Logging")
         self.stopLoggingButton.move(64,32)
         self.stopLoggingButton.clicked.connect(self.stopLogEvent)
@@ -204,7 +214,10 @@ class MainWindow(QMainWindow):
         self.infolayout.addWidget(self.link4H, 1,0, alignment=Qt.AlignTop)
         self.infolayout.addLayout(self.accelerationBox1.accBox, 0, 2)
         self.infolayout.addLayout(self.accelerationBox2.accBox, 1, 2)
-        self.infolayout.addWidget(self.resetButton,2 ,1, alignment=Qt.AlignCenter)
+        self.infolayout.addWidget(self.link4TH, 2,0, alignment=Qt.AlignTop)
+        self.infolayout.addLayout(self.theoVelocityBox1.velocityBox, 2, 1)
+        self.infolayout.addLayout(self.theoAccelerationBox1.accBox, 2, 2)
+        self.infolayout.addWidget(self.resetButton,3 ,1, alignment=Qt.AlignCenter)
         self.infolayout.columnStretch(2)
         widget.setLayout(self.page_layout)
         self.setCentralWidget(widget)
@@ -226,7 +239,6 @@ class MainWindow(QMainWindow):
 
 
     def update_plot(self):
-        
         if self.isConnected:
             _buffer = self.serialComm.getBuffer(2)
             if _buffer != 0:
@@ -237,7 +249,6 @@ class MainWindow(QMainWindow):
                 self.aXYZ_1[0] = buffer[0]
                 self.aXYZ_1[1] = buffer[1]
                 self.aXYZ_1[2] = buffer[2]
-
                 self.gYPR_2[0] = buffer[9]
                 self.gYPR_2[1] = buffer[10]
                 self.gYPR_2[2] = buffer[11]
@@ -245,35 +256,33 @@ class MainWindow(QMainWindow):
                 self.aXYZ_2[1] = buffer[7]
                 self.aXYZ_2[2] = buffer[8]
                 
+        self.deg1 = self.gYPR_1[0] + self.defaultDegParam[self.jointsCalculator.mode][0] - self.gyroOffset1
+        self.deg2 = self.gYPR_2[0] + self.defaultDegParam[self.jointsCalculator.mode][1] - self.gyroOffset2
+
         # คำนวนความเร็ว #
-        self.time_current = round(time.time())
+        calDeg = self.jointsCalculator.calculateLinks(self.deg1, 1) # self.deg1
+        self.time_current = round(time.time(),3)
         for i in range(3):
             self.dv1[i] = (self.aXYZ_1[i]-self.aXYZ_offset_1[i]) * (self.time_current - self.prev_time) 
             self.v1[i] = round((self.v1[i] + self.dv1[i]),2)
             self.dv2[i] = (self.aXYZ_2[i]-self.aXYZ_offset_2[i]) * (self.time_current - self.prev_time)
             self.v2[i] = round((self.v2[i] + self.dv2[i]),2)
-        self.prev_time = self.time_current
-
-        self.deg1 = self.gYPR_1[0] + self.defaultDegParam[self.jointsCalculator.mode][0] - self.gyroOffset1
-        self.deg2 = self.gYPR_2[0] + self.defaultDegParam[self.jointsCalculator.mode][1] - self.gyroOffset2
-
+        
+        self.omega4 = (radians(calDeg[1]) - radians(self.prev_deg4)) / (self.time_current - self.prev_time)
+        self.vR4 = round((self.omega4 * self.link2[self.jointsCalculator.mode]), 2)
+        self.aR4 = round(((self.vR4 - self.prev_vR4) / (self.time_current - self.prev_time)), 2)
+        #print(self.aR4)
         self.speedLink2 = sqrt(self.v1[0]**2 + self.v1[2]**2)
         self.speedLink4 = sqrt(self.v2[0]**2 + self.v2[2]**2)
+        self.accelLink2 = sqrt(self.aXYZ_1[0]**2 + self.aXYZ_1[1]**2 + self.aXYZ_1[2]**2)
+        self.accelLink4 = sqrt(self.aXYZ_2[0]**2 + self.aXYZ_2[1]**2 + self.aXYZ_2[2]**2)
 
+        self.theoVelocityBox1.vM.setText(str(self.vR4))
+        self.theoAccelerationBox1.aM.setText(str(self.aR4))
         self.velocityBox1.vM.setText(str(self.speedLink2))
-        self.velocityBox1.vX.setText(str(self.v1[0]))
-        self.velocityBox1.vY.setText(str(self.v1[1]))
-        self.velocityBox1.vZ.setText(str(self.v1[2]))
-        self.accelerationBox1.aX.setText(str(self.aXYZ_1[0]))
-        self.accelerationBox1.aY.setText(str(self.aXYZ_1[1]))
-        self.accelerationBox1.aZ.setText(str(self.aXYZ_1[2]))
+        self.accelerationBox1.aM.setText(str(self.accelLink2))
         self.velocityBox2.vM.setText(str(self.speedLink4))
-        self.velocityBox2.vX.setText(str(self.v2[0]))
-        self.velocityBox2.vY.setText(str(self.v2[1]))
-        self.velocityBox2.vZ.setText(str(self.v2[2]))
-        self.accelerationBox2.aX.setText(str(self.aXYZ_2[0]))
-        self.accelerationBox2.aY.setText(str(self.aXYZ_2[1]))
-        self.accelerationBox2.aZ.setText(str(self.aXYZ_2[2]))
+        self.accelerationBox2.aM.setText(str(self.accelLink4))
         
         # นำค่า Gyro (Pitch) มาวาดแขน #
         self.x,self.y=self.jointsCalculator.calculateLinks(self.deg1)  # ใช้ค่าของ Gyro แล้วคำนวนองศาแขนอีกข้างเอง
@@ -282,7 +291,6 @@ class MainWindow(QMainWindow):
 
         self.date_time = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
         self.str_date_time = self.date_time.strftime("%d-%m-%Y:%H:%M:%S:%f")
-
         self.LogDict = {
             "Timestamp": self.str_date_time,
             "Gyro1":str(self.deg1),
@@ -305,7 +313,13 @@ class MainWindow(QMainWindow):
         if self.LogState:
             self.event_handler_values_update(self.LogDict, self.writer)
 
-        # self.iii += 1
+        
+        self.prev_deg4 = calDeg[1]
+        self.prev_vR4 = self.vR4
+        self.prev_time = self.time_current
+
+        #self.iii += 1
+
 
     def selectionChange(self, i):
         if i != 0:
@@ -433,85 +447,42 @@ class Velocity(QWidget):
         super(Velocity, self).__init__()
         self.velo = QLabel()
         self.m = QLabel()
-        self.x = QLabel()
-        self.y = QLabel()
-        self.z = QLabel()
-        self.unit0 = QLabel()
-        self.unit1 = QLabel()
-        self.unit2 = QLabel()
-        self.unit3 = QLabel()
+        self.unit = QLabel()
         self.velocityBox = QVBoxLayout()
         self.velocityGrid = QGridLayout()
-        self.vX = QLabel()
-        self.vY = QLabel()
-        self.vZ = QLabel()
         self.vM = QLabel()
 
         self.velo.setText("Velocity")   
         self.m.setText("Magnitute:")  
-        self.x.setText("X:")  
-        self.y.setText("Y:")
-        self.z.setText("Z:")
-        self.unit0.setText("m/s")
-        self.unit1.setText("m/s")
-        self.unit2.setText("m/s")
-        self.unit3.setText("m/s")
+        self.unit.setText("m/s")
         self.vM.setText("0.0")
-        self.vX.setText("0.0")
-        self.vY.setText("0.0")
-        self.vZ.setText("0.0")
         self.velocityBox.addWidget(self.velo)
         self.velocityGrid.addWidget(self.m, 0, 0)
-        self.velocityGrid.addWidget(self.x, 1, 0)
-        self.velocityGrid.addWidget(self.y, 2, 0)
-        self.velocityGrid.addWidget(self.z, 3, 0)
         self.velocityGrid.addWidget(self.vM, 0, 1)
-        self.velocityGrid.addWidget(self.vX, 1, 1)
-        self.velocityGrid.addWidget(self.vY, 2, 1)
-        self.velocityGrid.addWidget(self.vZ, 3, 1)
-        self.velocityGrid.addWidget(self.unit0, 0, 2)
-        self.velocityGrid.addWidget(self.unit1, 1, 2)
-        self.velocityGrid.addWidget(self.unit2, 2, 2)
-        self.velocityGrid.addWidget(self.unit3, 3, 2)
+        self.velocityGrid.addWidget(self.unit, 0, 2)
         self.velocityBox.addLayout(self.velocityGrid)
 
 class Acceleration(QWidget):
     def __init__(self):
         super(Acceleration, self).__init__()
         self.acc = QLabel()
-        self.x = QLabel()
-        self.y = QLabel()
-        self.z = QLabel()
-        self.unit1 = QLabel()
-        self.unit2 = QLabel()
-        self.unit3 = QLabel()
+        self.m = QLabel()
+        self.unit = QLabel()
         self.accBox = QVBoxLayout()
         self.accGrid = QGridLayout()
-        self.aX = QLabel()
-        self.aY = QLabel()
-        self.aZ = QLabel()
+        self.aM = QLabel()
 
-        self.acc.setText("Accelerometer")
-        self.x.setText("X:")
-        self.y.setText("Y:")
-        self.z.setText("Z:")
-        self.unit1.setText("m/s^2")
-        self.unit2.setText("m/s^2")
-        self.unit3.setText("m/s^2")
-        self.aX.setText("0.0")
-        self.aY.setText("0.0")
-        self.aZ.setText("0.0")
+        self.acc.setText("Acceleration")
+        self.m.setText("Magnitute:")
+        self.unit.setText("m/s^2")
+        self.aM.setText("0.0")
         self.accBox.addWidget(self.acc)
-        self.accGrid.addWidget(self.x, 0, 0)
-        self.accGrid.addWidget(self.y, 1, 0)
-        self.accGrid.addWidget(self.z, 2, 0)
-        self.accGrid.addWidget(self.aX, 0, 1)
-        self.accGrid.addWidget(self.aY, 1, 1)
-        self.accGrid.addWidget(self.aZ, 2, 1)
-        self.accGrid.addWidget(self.unit1, 0, 2)
-        self.accGrid.addWidget(self.unit2, 1, 2)
-        self.accGrid.addWidget(self.unit3, 2, 2)
+        self.accGrid.addWidget(self.m, 0, 0)
+        self.accGrid.addWidget(self.aM, 0, 1)
+        self.accGrid.addWidget(self.unit, 0, 2)
         self.accBox.addLayout(self.accGrid)
+
+
 
 app = QApplication(sys.argv)
 w = MainWindow()
