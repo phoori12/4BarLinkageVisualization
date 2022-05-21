@@ -257,27 +257,27 @@ class MainWindow(QMainWindow):
                 self.aXYZ_2[1] = buffer[7]
                 self.aXYZ_2[2] = buffer[8]
                 
-        self.deg1 = self.gYPR_1[1] + self.defaultDegParam[self.jointsCalculator.mode][0] - self.gyroOffset1
-        self.deg2 = self.gYPR_2[1] + self.defaultDegParam[self.jointsCalculator.mode][1] - self.gyroOffset2
-        print(self.gYPR_1[1])
+        self.deg1 = self.gYPR_1[2] + self.defaultDegParam[self.jointsCalculator.mode][0] - self.gyroOffset1
+        self.deg2 = self.gYPR_2[2] + self.defaultDegParam[self.jointsCalculator.mode][1] - self.gyroOffset2
+        #print(self.gYPR_1[2])
 
         # คำนวนความเร็ว #
         calDeg = self.jointsCalculator.calculateLinks(self.deg1, 1) # self.deg1
         self.time_current = round(time.time(),3)
         for i in range(3):
             self.dv1[i] = (self.aXYZ_1[i]-self.aXYZ_offset_1[i]) * (self.time_current - self.prev_time) 
-            self.v1[i] = round((self.v1[i] + self.dv1[i]),2)
+            self.v1[i] = self.v1[i] + self.dv1[i]
             self.dv2[i] = (self.aXYZ_2[i]-self.aXYZ_offset_2[i]) * (self.time_current - self.prev_time)
-            self.v2[i] = round((self.v2[i] + self.dv2[i]),2)
+            self.v2[i] = self.v2[i] + self.dv2[i]
         
         self.omega4 = (radians(calDeg[1]) - radians(self.prev_deg4)) / (self.time_current - self.prev_time)
-        self.vR4 = round((self.omega4 * self.link2[self.jointsCalculator.mode]), 2)
-        self.aR4 = round(((self.vR4 - self.prev_vR4) / (self.time_current - self.prev_time)), 2)
-        self.speedLink2 = sqrt(self.v1[0]**2 + self.v1[2]**2)
-        self.speedLink4 = sqrt(self.v2[0]**2 + self.v2[2]**2)
-        self.accelLink2 = sqrt(self.aXYZ_1[0]**2 + self.aXYZ_1[1]**2 + self.aXYZ_1[2]**2)
-        self.accelLink4 = sqrt(self.aXYZ_2[0]**2 + self.aXYZ_2[1]**2 + self.aXYZ_2[2]**2)
-
+        self.vR4 = round((self.omega4 * self.link2[self.jointsCalculator.mode]), 3)
+        self.aR4 = round(((self.vR4 - self.prev_vR4) / (self.time_current - self.prev_time)), 3)
+        self.speedLink2 = round((sqrt(self.v1[0]**2 + self.v1[1]**2 + self.v1[2]**2)),3)
+        self.speedLink4 = round((sqrt(self.v2[0]**2 + self.v2[1]**2 + self.v2[2]**2)),3)
+        self.accelLink2 = round((sqrt(self.aXYZ_1[0]**2 + self.aXYZ_1[1]**2 + self.aXYZ_1[2]**2)),3)
+        self.accelLink4 = round((sqrt(self.aXYZ_2[0]**2 + self.aXYZ_2[1]**2 + self.aXYZ_2[2]**2)),3)
+        #print(self.speedLink2)
         self.theoVelocityBox1.vM.setText(str(self.vR4))
         self.theoAccelerationBox1.aM.setText(str(self.aR4))
         self.velocityBox1.vM.setText(str(self.speedLink2))
@@ -344,8 +344,8 @@ class MainWindow(QMainWindow):
             self.aXYZ_offset_1[i] = self.aXYZ_1[i]
             self.aXYZ_offset_2[i] = self.aXYZ_2[i]
 
-        self.gyroOffset1 = self.gYPR_1[0] # real gyro value
-        self.gyroOffset2 = self.gYPR_2[0]  # real gyro value
+        self.gyroOffset1 = self.gYPR_1[2] # real gyro value
+        self.gyroOffset2 = self.gYPR_2[2]  # real gyro value
         self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.defaultDegParam[self.jointsCalculator.mode][0], self.defaultDegParam[self.jointsCalculator.mode][1]) # Set มุมต่างๆกลับเป็น Default และวาด link
         self.data_line.setData(self.x, self.y)
 
