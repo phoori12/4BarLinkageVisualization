@@ -77,10 +77,9 @@ class MainWindow(QMainWindow):
         self.str_date_time = self.date_time.strftime("%d-%m-%Y:%H:%M:%S:%f")
         self.main_direc = os.path.join(self.dirname, 'logging')
         
-        self.fileName = f'results{self.date_time.strftime("%d%m%Y%H%M%S")}.csv'
-        self.fileName = os.path.join(self.main_direc, self.fileName)
-        self.csvFile= open(self.fileName, 'w')
-        self.writer = csv.writer(self.csvFile)
+        self.fileName = None
+        self.csvFile= None
+        self.writer = None
         self.LogDict = {
             "Timestamp": self.str_date_time,
             "Gyro1":"0.0",
