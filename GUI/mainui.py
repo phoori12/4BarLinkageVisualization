@@ -98,6 +98,8 @@ class MainWindow(QMainWindow):
             "Ax2":"0.0",
             "Ay2":"0.0",
             "Az2":"0.0",
+            "TheoV":"0.0",
+            "TheoA":"0.0"
         }
         #######################################################################
 
@@ -307,6 +309,8 @@ class MainWindow(QMainWindow):
             "Ax2":str(self.aXYZ_2[0]),
             "Ay2":str(self.aXYZ_2[1]),
             "Az2":str(self.aXYZ_2[2]),
+            "TheoV":str(self.vR4),
+            "TheoA":str(self.aR4)
         }
         if self.LogState:
             self.event_handler_values_update(self.LogDict, self.writer)
