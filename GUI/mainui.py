@@ -270,7 +270,6 @@ class MainWindow(QMainWindow):
         self.omega4 = (radians(calDeg[1]) - radians(self.prev_deg4)) / (self.time_current - self.prev_time)
         self.vR4 = round((self.omega4 * self.link2[self.jointsCalculator.mode]), 2)
         self.aR4 = round(((self.vR4 - self.prev_vR4) / (self.time_current - self.prev_time)), 2)
-        #print(self.aR4)
         self.speedLink2 = sqrt(self.v1[0]**2 + self.v1[2]**2)
         self.speedLink4 = sqrt(self.v2[0]**2 + self.v2[2]**2)
         self.accelLink2 = sqrt(self.aXYZ_1[0]**2 + self.aXYZ_1[1]**2 + self.aXYZ_1[2]**2)
