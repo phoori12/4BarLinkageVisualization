@@ -65,11 +65,14 @@ class MainWindow(QMainWindow):
         # Logging Variable
         
         self.LogState = False
+        self.dirname = os.path.dirname(__file__)
         self.date_time = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
         self.str_date_time = self.date_time.strftime("%d-%m-%Y:%H:%M:%S:%f")
-        self.main_direc = 'logging'
+        self.main_direc = os.path.join(self.dirname, 'logging')
+        
         self.fileName = f'results{self.date_time.strftime("%d:%m:%Y-%H:%M:%S")}.csv'
         self.fileName = os.path.join(self.main_direc, self.fileName)
+        #print(self.fileName)
         self.csvFile= open(self.fileName, 'w')
         self.writer = csv.writer(self.csvFile)
         self.LogDict = {
@@ -395,7 +398,7 @@ class MainWindow(QMainWindow):
         if not self.LogState:
             self.LogState = True
             self.date_time = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
-            self.main_direc = 'logging'
+            self.main_direc = os.path.join(self.dirname, 'logging')
             self.fileName = f'results{self.date_time.strftime("%d:%m:%Y-%H:%M:%S")}.csv'
             self.fileName = os.path.join(self.main_direc, self.fileName)
             self.csvFile= open(self.fileName, 'w')
