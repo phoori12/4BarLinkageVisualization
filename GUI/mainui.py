@@ -76,7 +76,8 @@ class MainWindow(QMainWindow):
         self.date_time = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
         self.str_date_time = self.date_time.strftime("%d-%m-%Y:%H:%M:%S:%f")
         self.main_direc = os.path.join(self.dirname, 'logging')
-        
+        self.logTime = 0
+
         self.fileName = None
         self.csvFile= None
         self.writer = None
@@ -271,12 +272,12 @@ class MainWindow(QMainWindow):
             self.v2[i] = self.v2[i] + self.dv2[i]
         
         self.omega4 = (radians(calDeg[1]) - radians(self.prev_deg4)) / (self.time_current - self.prev_time)
-        self.vR4 = round((self.omega4 * self.link2[self.jointsCalculator.mode]), 2)
-        self.aR4 = round(((self.vR4 - self.prev_vR4) / (self.time_current - self.prev_time)), 2)
-        self.speedLink2 = round((sqrt(self.v1[0]**2 + self.v1[1]**2)),2)
-        self.speedLink4 = round((sqrt(self.v2[0]**2 + self.v2[1]**2)),2)
-        self.accelLink2 = round((sqrt(self.aXYZ_1[0]**2 + self.aXYZ_1[1]**2 + self.aXYZ_1[2]**2)),2)
-        self.accelLink4 = round((sqrt(self.aXYZ_2[0]**2 + self.aXYZ_2[1]**2 + self.aXYZ_2[2]**2)),2)
+        self.vR4 = round((self.omega4 * self.link2[self.jointsCalculator.mode]), 3)
+        self.aR4 = round(((self.vR4 - self.prev_vR4) / (self.time_current - self.prev_time)), 3)
+        self.speedLink2 = round((sqrt(self.v1[0]**2 + self.v1[1]**2)),3)
+        self.speedLink4 = round((sqrt(self.v2[0]**2 + self.v2[1]**2)),3)
+        self.accelLink2 = round((sqrt(self.aXYZ_1[0]**2 + self.aXYZ_1[1]**2 + self.aXYZ_1[2]**2)),3)
+        self.accelLink4 = round((sqrt(self.aXYZ_2[0]**2 + self.aXYZ_2[1]**2 + self.aXYZ_2[2]**2)),3)
         #print(self.speedLink2)
         self.theoVelocityBox1.vM.setText(str(self.vR4))
         self.theoAccelerationBox1.aM.setText(str(self.aR4))
@@ -294,28 +295,28 @@ class MainWindow(QMainWindow):
         self.str_date_time = self.date_time.strftime("%d-%m-%Y:%H:%M:%S:%f")
         self.LogDict = {
             "Timestamp": self.str_date_time,
-            "Gyro1":str(self.deg1),
-            "Vx1": str(self.v1[0]),
-            "Vy1": str(self.v1[1]),
-            "Vz1": str(self.v1[2]),
+            "Gyro1":str(round(self.deg1, 3)),
+            "Vx1": str(round(self.v1[0],3)),
+            "Vy1": str(round(self.v1[1],3)),
+            "Vz1": str(round(self.v1[2],3)),
             "Vm1":str(self.speedLink2),
-            "Ax1":str(self.aXYZ_1[0]),
-            "Ay1":str(self.aXYZ_1[1]),
-            "Az1":str(self.aXYZ_1[2]),
-            "Gyro2":str(self.deg2),
-            "Vx2":str(self.v2[0]),
-            "Vy2":str(self.v2[1]),
-            "Vz2":str(self.v2[2]),
+            "Ax1":str(round(self.aXYZ_1[0],3)),
+            "Ay1":str(round(self.aXYZ_1[1],3)),
+            "Az1":str(round(self.aXYZ_1[2],3)),
+            "Gyro2":str(round(self.deg2,3)),
+            "Vx2":str(round(self.v2[0],3)),
+            "Vy2":str(round(self.v2[1],3)),
+            "Vz2":str(round(self.v2[2],3)),
             "Vm2":str(self.speedLink4),
-            "Ax2":str(self.aXYZ_2[0]),
-            "Ay2":str(self.aXYZ_2[1]),
-            "Az2":str(self.aXYZ_2[2]),
+            "Ax2":str(round(self.aXYZ_2[0],3)),
+            "Ay2":str(round(self.aXYZ_2[1],3)),
+            "Az2":str(round(self.aXYZ_2[2],3)),
             "TheoV":str(self.vR4),
             "TheoA":str(self.aR4)
         }
-        if self.LogState:
+        if self.LogState and (self.time_current - self.logTime >= 1):
             self.event_handler_values_update(self.LogDict, self.writer)
-
+            self.logTime = self.time_current
         
         self.prev_deg4 = calDeg[1]
         self.prev_vR4 = self.vR4
