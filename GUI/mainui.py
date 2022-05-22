@@ -286,8 +286,8 @@ class MainWindow(QMainWindow):
         self.accelerationBox2.aM.setText(str(self.accelLink4))
         
         # นำค่า Gyro (Pitch) มาวาดแขน #
-        #self.x,self.y=self.jointsCalculator.calculateLinks(self.deg1)  # ใช้ค่าของ Gyro แล้วคำนวนองศาแขนอีกข้างเอง
-        self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)  # วาดแขนจากองศาของ Gyro ทั้ง 2 ตัว
+        self.x,self.y=self.jointsCalculator.calculateLinks(self.deg1)  # ใช้ค่าของ Gyro แล้วคำนวนองศาแขนอีกข้างเอง
+        #self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.deg1, self.deg2)  # วาดแขนจากองศาของ Gyro ทั้ง 2 ตัว
         self.data_line.setData(self.x, self.y)
 
         self.date_time = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
