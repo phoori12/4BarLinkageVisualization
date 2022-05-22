@@ -344,8 +344,16 @@ class MainWindow(QMainWindow):
             self.aXYZ_offset_1[i] = self.aXYZ_1[i]
             self.aXYZ_offset_2[i] = self.aXYZ_2[i]
 
+        self.omega4 = 0
+        self.vR4 = 0
+        self.aR4 = 0
+        self.speedLink2 = 0
+        self.speedLink4 = 0
+        self.accelLink2 = 0
+        self.accelLink4 = 0
         self.gyroOffset1 = self.gYPR_1[0] # real gyro value
         self.gyroOffset2 = self.gYPR_2[0]  # real gyro value
+        self.prev_time = self.time_current = round(time.time(),3)
         self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.defaultDegParam[self.jointsCalculator.mode][0], self.defaultDegParam[self.jointsCalculator.mode][1]) # Set มุมต่างๆกลับเป็น Default และวาด link
         self.data_line.setData(self.x, self.y)
 
