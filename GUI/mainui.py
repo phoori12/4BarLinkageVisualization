@@ -77,7 +77,6 @@ class MainWindow(QMainWindow):
         self.str_date_time = self.date_time.strftime("%d-%m-%Y:%H:%M:%S:%f")
         self.main_direc = os.path.join(self.dirname, 'logging')
         self.logTime = 0
-
         self.fileName = None
         self.csvFile= None
         self.writer = None
@@ -99,8 +98,6 @@ class MainWindow(QMainWindow):
             "Ax2":"0.0",
             "Ay2":"0.0",
             "Az2":"0.0",
-            "TheoV":"0.0",
-            "TheoA":"0.0"
         }
         #######################################################################
 
@@ -120,15 +117,12 @@ class MainWindow(QMainWindow):
         self.sensorReadH = QLabel()
         self.link2H = QLabel()
         self.link4H = QLabel()
-        self.link4TH = QLabel()
         self.infolayout = QGridLayout()
         self.page_layout = QVBoxLayout()
         self.velocityBox1 = Velocity()
         self.velocityBox2 = Velocity()
-        self.theoVelocityBox1 = Velocity()
         self.accelerationBox1 = Acceleration()
         self.accelerationBox2 = Acceleration()
-        self.theoAccelerationBox1 = Acceleration()
         self.resetButton = QPushButton()
         self.startLoggingButton = QPushButton()
         self.stopLoggingButton = QPushButton()
@@ -177,7 +171,6 @@ class MainWindow(QMainWindow):
         self.sensorReadH.setText("ค่าที่อ่านได้จากเซ็นเซอร์")
         self.link2H.setText("Link 2")
         self.link4H.setText("Link 4")
-        self.link4TH.setText("Link 4 (Theory)")
 
         # Button Setup
         self.resetButton.setText("Reset")
@@ -216,9 +209,6 @@ class MainWindow(QMainWindow):
         self.infolayout.addWidget(self.link4H, 1,0, alignment=Qt.AlignTop)
         self.infolayout.addLayout(self.accelerationBox1.accBox, 0, 2)
         self.infolayout.addLayout(self.accelerationBox2.accBox, 1, 2)
-        self.infolayout.addWidget(self.link4TH, 2,0, alignment=Qt.AlignTop)
-        self.infolayout.addLayout(self.theoVelocityBox1.velocityBox, 2, 1)
-        self.infolayout.addLayout(self.theoAccelerationBox1.accBox, 2, 2)
         self.infolayout.addWidget(self.resetButton,3 ,1, alignment=Qt.AlignCenter)
         self.infolayout.columnStretch(2)
         widget.setLayout(self.page_layout)
@@ -229,8 +219,8 @@ class MainWindow(QMainWindow):
         #######################################################################
 
         self.x,self.y = self.jointsCalculator.calculateLinks(self.i)
-        self.time_current = round(time.time() * 1000)
-        self.prev_time = self.time_current
+        self.time_current = round(time.time(), 3)
+        self.prev_time = 0
         self.update_plot()
 
         self.show()
@@ -271,16 +261,11 @@ class MainWindow(QMainWindow):
             self.dv2[i] = (self.aXYZ_2[i]-self.aXYZ_offset_2[i]) * (self.time_current - self.prev_time)
             self.v2[i] = self.v2[i] + self.dv2[i]
         
-        self.omega4 = (radians(calDeg[1]) - radians(self.prev_deg4)) / (self.time_current - self.prev_time)
-        self.vR4 = round((self.omega4 * self.link2[self.jointsCalculator.mode]), 3)
-        self.aR4 = round(((self.vR4 - self.prev_vR4) / (self.time_current - self.prev_time)), 3)
         self.speedLink2 = round((sqrt(self.v1[0]**2 + self.v1[1]**2)),3)
         self.speedLink4 = round((sqrt(self.v2[0]**2 + self.v2[1]**2)),3)
         self.accelLink2 = round((sqrt(self.aXYZ_1[0]**2 + self.aXYZ_1[1]**2 + self.aXYZ_1[2]**2)),3)
         self.accelLink4 = round((sqrt(self.aXYZ_2[0]**2 + self.aXYZ_2[1]**2 + self.aXYZ_2[2]**2)),3)
         #print(self.speedLink2)
-        self.theoVelocityBox1.vM.setText(str(self.vR4))
-        self.theoAccelerationBox1.aM.setText(str(self.aR4))
         self.velocityBox1.vM.setText(str(self.speedLink2))
         self.accelerationBox1.aM.setText(str(self.accelLink2))
         self.velocityBox2.vM.setText(str(self.speedLink4))
@@ -310,16 +295,13 @@ class MainWindow(QMainWindow):
             "Vm2":str(self.speedLink4),
             "Ax2":str(round(self.aXYZ_2[0],3)),
             "Ay2":str(round(self.aXYZ_2[1],3)),
-            "Az2":str(round(self.aXYZ_2[2],3)),
-            "TheoV":str(self.vR4),
-            "TheoA":str(self.aR4)
+            "Az2":str(round(self.aXYZ_2[2],3))
         }
-        if self.LogState and (self.time_current - self.logTime >= 1):
+        # if self.LogState and (self.time_current - self.logTime >= 0.5):
+        if self.LogState:
             self.event_handler_values_update(self.LogDict, self.writer)
-            self.logTime = self.time_current
-        
-        self.prev_deg4 = calDeg[1]
-        self.prev_vR4 = self.vR4
+            # self.logTime = self.time_current
+
         self.prev_time = self.time_current
 
         #self.iii += 1
@@ -345,18 +327,13 @@ class MainWindow(QMainWindow):
             self.aXYZ_offset_1[i] = self.aXYZ_1[i]
             self.aXYZ_offset_2[i] = self.aXYZ_2[i]
 
-        self.omega4 = 0
-        self.vR4 = 0
-        self.aR4 = 0
         self.speedLink2 = 0
         self.speedLink4 = 0
         self.accelLink2 = 0
         self.accelLink4 = 0
-        self.prev_deg4 = 0
-        self.prev_vR4 = 0
         self.gyroOffset1 = self.gYPR_1[0] # real gyro value
         self.gyroOffset2 = self.gYPR_2[0]  # real gyro value
-        self.prev_time = self.time_current = round(time.time(),3)
+        self.prev_time = round(time.time(),3)
         self.x,self.y=self.jointsCalculator.drawFromBothDegree(self.defaultDegParam[self.jointsCalculator.mode][0], self.defaultDegParam[self.jointsCalculator.mode][1]) # Set มุมต่างๆกลับเป็น Default และวาด link
         self.data_line.setData(self.x, self.y)
 
