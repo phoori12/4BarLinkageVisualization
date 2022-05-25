@@ -2,7 +2,7 @@
 ![Python 3.9](https://img.shields.io/badge/python-3.9-green.svg)
 
 ESP32BoardManager Version 2.0.0
-a
+
 
 ## วิธีรัน
 1. เปิด GUI ขึ้นมา (GUI/mainui.py)
