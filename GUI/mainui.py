@@ -238,8 +238,8 @@ class MainWindow(QMainWindow):
         self.accelLink2 = round((sqrt(self.aXYZ_1[0]**2 + self.aXYZ_1[1]**2 + self.aXYZ_1[2]**2)),3)
         self.accelLink4 = round((sqrt(self.aXYZ_2[0]**2 + self.aXYZ_2[1]**2 + self.aXYZ_2[2]**2)),3)
 
-        self.link2H.deg.setText(str(round(self.gYPR_1[0],3)))
-        self.link4H.deg.setText(str(round(self.gYPR_1[0],3)))
+        self.link2H.deg.setText(str(round((self.gYPR_1[0] - self.gyroOffset1),3)))
+        self.link4H.deg.setText(str(round((self.gYPR_1[0] - self.gyroOffset1),3)))
 
         self.velocityBox1.vX.setText(str(round(self.v1[0], 3)))
         self.velocityBox1.vY.setText(str(round(self.v1[1], 3)))
