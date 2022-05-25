@@ -106,8 +106,8 @@ class MainWindow(QMainWindow):
         self.serialDisconnect = QPushButton()
         self.serialRefresh = QPushButton()
         self.sensorReadH = QLabel()
-        self.link2H = QLabel()
-        self.link4H = QLabel()
+        self.link2H = LinkDegreeInfo()
+        self.link4H = LinkDegreeInfo()
         self.infolayout = QGridLayout()
         self.page_layout = QVBoxLayout()
         self.velocityBox1 = Velocity()
@@ -146,8 +146,10 @@ class MainWindow(QMainWindow):
 
         # Header Widget Setup
         self.sensorReadH.setText("ค่าที่อ่านได้จากเซ็นเซอร์")
-        self.link2H.setText("Link 2")
-        self.link4H.setText("Link 4")
+        self.link2H.link.setText("Link 2")
+        self.link2H.degShow.setText("Gyro 1:")
+        self.link4H.link.setText("Link 4")
+        self.link4H.degShow.setText("Gyro 2:")
 
         # Button Setup
         self.resetButton.setText("Reset")
@@ -175,10 +177,10 @@ class MainWindow(QMainWindow):
         self.page_layout.addLayout(self.loggingBox)
         self.page_layout.addLayout(self.infolayout)
         self.infolayout.setContentsMargins(10,10,10,10)
-        self.infolayout.addWidget(self.link2H, 0,0, alignment=Qt.AlignTop)
+        self.infolayout.addLayout(self.link2H.degBox, 0,0, alignment=Qt.AlignTop)
         self.infolayout.addLayout(self.velocityBox1.velocityBox, 0, 1)
         self.infolayout.addLayout(self.velocityBox2.velocityBox, 1, 1)
-        self.infolayout.addWidget(self.link4H, 1,0, alignment=Qt.AlignTop)
+        self.infolayout.addLayout(self.link4H.degBox, 1,0, alignment=Qt.AlignTop)
         self.infolayout.addLayout(self.accelerationBox1.accBox, 0, 2)
         self.infolayout.addLayout(self.accelerationBox2.accBox, 1, 2)
         self.infolayout.addWidget(self.resetButton,3 ,1, alignment=Qt.AlignCenter)
@@ -235,6 +237,9 @@ class MainWindow(QMainWindow):
         self.speedLink4 = round((sqrt(self.v2[0]**2 + self.v2[1]**2)),3)
         self.accelLink2 = round((sqrt(self.aXYZ_1[0]**2 + self.aXYZ_1[1]**2 + self.aXYZ_1[2]**2)),3)
         self.accelLink4 = round((sqrt(self.aXYZ_2[0]**2 + self.aXYZ_2[1]**2 + self.aXYZ_2[2]**2)),3)
+
+        self.link2H.deg.setText(str(round(self.gYPR_1[0],3)))
+        self.link4H.deg.setText(str(round(self.gYPR_1[0],3)))
 
         self.velocityBox1.vX.setText(str(round(self.v1[0], 3)))
         self.velocityBox1.vY.setText(str(round(self.v1[1], 3)))
@@ -510,6 +515,28 @@ class Acceleration(QWidget):
         self.accGrid.addWidget(self.unit3, 2, 2)
         self.accGrid.addWidget(self.unit, 3, 2)
         self.accBox.addLayout(self.accGrid)
+
+class LinkDegreeInfo(QWidget):
+    def __init__(self):
+        super(LinkDegreeInfo, self).__init__()
+        self.link = QLabel()
+        self.degShow = QLabel()
+        self.degUnit = QLabel()
+        self.deg = QLabel()
+
+        self.link.setText("Link 2")
+        self.degShow.setText("Gyro 1:")
+        self.degUnit.setText("Degrees")
+        self.deg.setText("0.0")
+
+        self.degBox = QVBoxLayout()
+        self.degGrid = QGridLayout()
+
+        self.degBox.addWidget(self.link)
+        self.degGrid.addWidget(self.degShow, 0, 0)
+        self.degGrid.addWidget(self.deg, 0, 1)
+        self.degGrid.addWidget(self.degUnit, 0, 2)
+        self.degBox.addLayout(self.degGrid)
 
 
 
